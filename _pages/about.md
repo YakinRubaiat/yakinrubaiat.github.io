@@ -2,24 +2,25 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>Affiliations</a>. Address. Contacts. Motto. Etc.
+subtitle: PhD Student in Computer Science, Specializing in Large Language Models and Databases
+
 
 profile:
   align: right
-  image: prof_pic.jpg
+  image: Y_Profile_Picture.jpg
   image_circular: false # crops the image to make it circular
   more_info: >
-    <p>555 your office number</p>
-    <p>123 your address street</p>
-    <p>Your City, State 12345</p>
+    <p> University of Idaho, Moscow</p>
+    <p> Idaho 83843</p>
+    <p> yakin.rubaiat@gmail.com </p>
 
-news: true # includes a list of news items
+news: false # includes a list of news items
 selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
 
-Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
+I’m Sajratul Yakin Rubaiat, a **PhD student** at the [University of Idaho](https://www.uidaho.edu/) specializing in **Large Language Models (LLMs)** and **database systems**. My research lies at the intersection of artificial intelligence and database engineering, where I explore innovative ways to apply LLMs in fields requiring **real-time information**, such as **journalism** and **biomedical research**. I am supervised by [Dr. Hasan Jamil](https://www.uidaho.edu/engr/departments/cs/our-people/faculty/hasan-jamil) and work in the **SmartDatabase Lab**, where we’re developing advanced database solutions driven by AI.
 
-Put your address / P.O. box / other info right below your picture. You can also disable any of these elements by editing `profile` property of the YAML header of your `_pages/about.md`. Edit `_bibliography/papers.bib` and Jekyll will render your [publications page](/al-folio/publications/) automatically.
+Previously, I worked as a **Senior Software Engineer** at [Enosis Solutions](https://www.enosisbd.com/) and [Practice by Numbers](https://www.practicenumbers.com/), where I led projects focused on **data synchronization**, **campaign automation**, security enhancements, and UI/UX improvements, optimizing systems for **performance and reliability** across global teams. My experience also includes developing **machine learning solutions** for early diagnosis in medical applications, such as pneumonia detection through X-ray analysis and diabetes prediction as part of my undergraduate research.
 
-Link to your social media connections, too. This theme is set up to use [Font Awesome icons](https://fontawesome.com/) and [Academicons](https://jpswalsh.github.io/academicons/), like the ones below. Add your Facebook, Twitter, LinkedIn, Google Scholar, or just disable all of them.
+Additionally, I have experience in **competitive programming**, having participated in the ACM ICPC, which sharpened my problem-solving skills. I’m an avid learner with strong foundations in **Python**, **C++**, and **Java**, along with proficiency in frameworks like **TensorFlow**, **PyTorch**, **Django** and **React**. When I’m not immersed in research or coding, I enjoy cooking, exploring new cuisines, and discovering scenic spots around Idaho.
