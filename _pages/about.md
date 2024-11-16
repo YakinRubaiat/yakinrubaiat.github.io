@@ -7,7 +7,7 @@ subtitle: PhD Student in Computer Science, Specializing in Large Language Models
 
 profile:
   align: right
-  image: Y_Profile_Picture.jpg
+  image: Yakin_Picture.jpg
   image_circular: false # crops the image to make it circular
   more_info: >
     <p> University of Idaho, Moscow</p>
