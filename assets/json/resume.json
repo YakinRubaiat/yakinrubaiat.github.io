@@ -12,6 +12,38 @@
     "summary": "A dedicated Research Fellow with a strong interest in fundamental Large Language Models and their potential applications in fields like biology. I have good experience in machine learning, software engineering, and data analysis. Currently pursuing a PhD in Computer Science at the University of Idaho, where I am actively contributing to research in pneumonia detection and early diabetes prediction.",
     "profiles": []
   },
+  "interests": [
+    {
+      "name": "Fundamentals of Deep Learning Models",
+      "icon": "fa-solid fa-tag",
+      "keywords": []
+    },
+    {
+      "name": "Large Language Model Architecture",
+      "icon": "fa-solid fa-tag",
+      "keywords": []
+    },
+    {
+      "name": "AI in Social Science",
+      "icon": "fa-solid fa-tag",
+      "keywords": []
+    },
+    {
+      "name": "Network and Graph Analysis",
+      "icon": "fa-solid fa-tag",
+      "keywords": []
+    },
+    {
+      "name": "Knowledge Graphs and Large Language Models",
+      "icon": "fa-solid fa-tag",
+      "keywords": []
+    },
+    {
+      "name": "Biomedical Science",
+      "icon": "fa-solid fa-tag",
+      "keywords": []
+    }
+  ],
   "work": [
     {
       "name": "Enosis Solutions",
@@ -334,6 +366,5 @@
       "url": "https://doi.org/10.7910/DVN/OE7NFR",
       "summary": "Comprehensive dataset of rape cases from Bangladeshi newspapers for in-depth analysis."
     }
-  ],
-  "interests": []
+  ]
 }
