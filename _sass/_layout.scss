@@ -2,6 +2,13 @@
  * Content
  ******************************************************************************/
 
+#navbar {
+  background-color: #8B1615;
+  .nav-link {
+    color: white;
+  }
+}
+
 body {
   padding-bottom: 70px;
   color: var(--global-text-color);

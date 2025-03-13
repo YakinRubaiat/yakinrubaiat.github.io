@@ -1,3 +1,9 @@
+<style>
+  .navbar-brand.title.font-weight-lighter span {
+    color: white !important;
+  }
+</style>
+
 <header>
   <!-- Nav Bar -->
   <nav id="navbar" class="navbar navbar-light navbar-expand-sm {% if site.navbar_fixed %}fixed-top{% else %}sticky-top{% endif %}" role="navigation">
@@ -11,10 +17,14 @@
               </span>
             {% endif %}
             {% if site.middle_name %}
-              {{- site.middle_name -}}
+              <span class="font-weight-bold">
+                {{- site.middle_name -}}
+              </span>
             {% endif %}
             {% if site.last_name %}
-              {{- site.last_name -}}
+              <span class="font-weight-bold">
+                {{- site.last_name -}}
+              </span>
             {% endif %}
           {% else %}
             {{- site.title -}}
@@ -39,13 +49,11 @@
         <span class="icon-bar middle-bar"></span>
         <span class="icon-bar bottom-bar"></span>
       </button>
-
       <div class="collapse navbar-collapse text-right" id="navbarNav">
         <ul class="navbar-nav ml-auto flex-nowrap">
           {% for page in site.pages %}
             {% if page.permalink == '/' %} {% assign about_title = page.title %} {% endif %}
           {% endfor %}
-
           <!-- About -->
           <li class="nav-item {% if page.permalink == '/' %}active{% endif %}">
             <a class="nav-link" href="{{ '/' | relative_url }}">
@@ -55,7 +63,6 @@
               {% endif %}
             </a>
           </li>
-
           <!-- Other pages -->
           {% assign sorted_pages = site.pages | sort: 'nav_order' %}
           {% for p in sorted_pages %}
