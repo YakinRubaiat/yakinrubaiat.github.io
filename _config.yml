@@ -195,6 +195,9 @@ collections:
   projects:
     output: true
     permalink: /:collection/:title/
+  archived_posts:
+    output: false
+    permalink: /archived/:title/
 
 announcements:
   enabled: false
