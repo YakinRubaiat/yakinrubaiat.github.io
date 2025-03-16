@@ -196,7 +196,7 @@ collections:
     output: true
     permalink: /:collection/:title/
   archived_posts:
-    output: false
+    output: true
     permalink: /archived/:title/
 
 announcements:
