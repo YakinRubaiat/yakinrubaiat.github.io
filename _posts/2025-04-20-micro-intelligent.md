@@ -1,8 +1,8 @@
 ---
 layout: post
-title: Micro Intelligence: Why the Future of AI is Small, Smart, and Connected
+title: Micro Intelligence
 date: 2025-04-20 10:00:00 -0700
-description: Arguing for Micro Intelligence (MI) - an ecosystem of collaborating small AI models - as a more robust and adaptable future than monolithic Superintelligence (SI).
+description: Why the Future of AI is Small, Smart, and Connected
 tags: [AI, MicroIntelligence, ArtificialIntelligence, FutureOfAI, Modularity, NetworkScience, Groupthink, DistributedSystems]
 categories: [AI, Technology, Opinion]
 giscus_comments: false
@@ -22,7 +22,7 @@ This post argues that Micro Intelligence – this approach using small, smart, a
 (As a brief aside, the name 'Micro Intelligence' takes a little inspiration from the 'Micro' in Microsoft – simply as a nod to the power found in ecosystems of distinct technological components working together, rather than in a single, all-encompassing monolith.)
 
 
-## II. A Lesson from Machine Learning: The Power of the Ensemble (Random Forests)
+## II. A Lesson from Machine Learning(Random Forests):
 
 Before diving deeper into the case against monolithic AI, let's look at a powerful concept from machine learning that directly inspires Micro Intelligence: the **ensemble method**, perfectly exemplified by Random Forests [3, 4].
 
@@ -106,7 +106,7 @@ This "Learner Model" approach is fundamental to MI's potential. By focusing on c
 
 Defining Micro Intelligence and its "Learner Model" philosophy is one thing; demonstrating its potential superiority over the monolithic SI approach requires looking at evidence and principles from various domains. When we do, a compelling case emerges.
 
-### Lessons from Computation (Leveraging Learner Models)
+### Lessons from Computation
 
 Computer science itself provides strong precedents favoring modular, ensemble-based approaches:
 
@@ -121,7 +121,7 @@ Simple thought experiments clarify the practical advantages:
 * **Universal Tool vs. Specialized Toolkit:** The MI ecosystem acts like a toolkit of specialized Learner Models. The Coordinator ($\mathcal{C}$) selects the right tool(s) for the job, leading to greater efficiency and task-specific effectiveness compared to a hypothetical, clumsy "universal" SI trying to do everything.
 * **Transparent Council vs. Black Box Oracle:** While explainability in AI is challenging overall, understanding the reasoning of a smaller, specialized Learner Model is likely more feasible than deciphering a giant black-box SI. Tracing a decision in an MI system might involve identifying which Learner Models contributed, offering a potential path towards greater transparency.
 
-### Insights from Network Science (Structuring Learner Model Collaboration)
+### Insights from Network Science
 
 Network science provides powerful concepts for understanding how an ecosystem of Learner Models could be effectively structured:
 
@@ -132,7 +132,7 @@ Network science provides powerful concepts for understanding how an ecosystem of
 These converging lines of evidence – from practical computation, intuitive analogies, and the formal study of networks – strongly suggest that coordinating an ecosystem of specialized, adaptable Learner Models is not just an alternative to monolithic SI, but potentially a far more promising path towards robust, scalable, and effective artificial intelligence.
 
 
-## VI. Conclusion: The Future is Small, Smart, and Connected
+## VI. Conclusion
 
 The pursuit of artificial intelligence often defaults to scaling upwards, envisioning a future dominated by a single, monolithic superintelligence. Yet, as we've explored, this path is fraught with challenges – from practical hurdles of cost and complexity to the profound risks of "computational groupthink" and the unsolved alignment problem. Nature, computation, and organizational experience all suggest that distributed, modular systems often prove more resilient, adaptable, and ultimately more effective.
 
@@ -141,6 +141,10 @@ Micro Intelligence offers a compelling alternative vision. By focusing on an eco
 Building this MI ecosystem requires tackling significant challenges in coordination, communication, and standardization. But the potential rewards – robust, scalable, efficient, adaptable, and potentially more explainable and safer AI – make it a direction worthy of intense focus.
 
 The future of artificial intelligence may not belong to one giant, inscrutable brain after all. Instead, it might emerge from the intricate dance of countless smaller, smarter, interconnected components working in concert. It's a future that is not only potentially more achievable but also more democratic, sustainable, and aligned with a world that thrives on diversity and collaboration. The most powerful intelligence might not be the biggest, but the best connected.
+
+## Update:
+
+1. I think the way we publish papers and view problems from different angles is key to advancing research. If only a few labs published their results, it wouldn't create enough diversity or spark the chain reaction of ideas needed to drive innovation forward.
 
 
 ## Source:
@@ -177,3 +181,6 @@ Games (My Fav):
 
 1. [The wisdom and/or Madness of Crowds](https://ncase.me/crowds/)
 
+Video:
+
+1. [Do schools kill creativity? | Sir Ken Robinson](https://www.youtube.com/watch?v=iG9CE55wbtY&ab_channel=TED)
