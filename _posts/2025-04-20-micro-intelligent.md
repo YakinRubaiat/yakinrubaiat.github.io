@@ -36,11 +36,11 @@ Random Forests offer a clever solution: instead of relying on one complex tree, 
     * At each node split within a tree, only a random subset of features is considered.
 3.  **Aggregate Predictions:** Once all the diverse trees are built, the final prediction for a new input $x$ is determined by combining the outputs of all individual trees:
     * **For Classification:** The forest predicts the class that gets the most votes from individual trees:
-        $F(x) = \text{mode}\{f_1(x), f_2(x), ..., f_N(x)\}$
+        $ F(x) = \text{mode}\{f_1(x), f_2(x), ..., f_N(x)\} $
     * **For Regression:** The forest predicts the average of the individual tree predictions:
-        $F(x) = \frac{1}{N} \sum_{i=1}^{N} f_i(x)$
+        $ F(x) = \frac{1}{N} \sum_{i=1}^{N} f_i(x) $
 
-The magic here is that by averaging the outputs of many diverse, less complex models (which might individually be weak learners), the ensemble ($F(x)$) becomes much more robust, less prone to overfitting, and generally more accurate than any single complex tree could be. It's a clear demonstration that **coordinating many simpler, specialized units can outperform a single complex one** – a core principle behind Micro Intelligence.
+The magic here is that by averaging the outputs of many diverse, less complex models (which might individually be weak learners), the ensemble ($ F(x) $) becomes much more robust, less prone to overfitting, and generally more accurate than any single complex tree could be. It's a clear demonstration that **coordinating many simpler, specialized units can outperform a single complex one** – a core principle behind Micro Intelligence.
 
 
 ## III. The Case Against the Monolith: Why Superintelligence Might Be a Flawed Goal
@@ -84,15 +84,15 @@ Instead of concentrating all intelligence into one place, MI distributes it. It 
 
 Conceptually, an MI system can be understood through its key parts:
 
-1.  **A Collection of Micro-Models ($\mathcal{S}$):** The core of the system is a diverse set $\mathcal{S} = \{m_1, m_2, ..., m_N\}$ of individual AI models. Each micro-model ($m_i$) is designed to be relatively small and specialized, focusing on specific tasks, data types, or cognitive functions (e.g., image analysis, natural language parsing, causal reasoning, specific domain knowledge).
+1.  **A Collection of Micro-Models ($ \mathcal{S} $):** The core of the system is a diverse set $ \mathcal{S} = \{m_1, m_2, ..., m_N\} $ of individual AI models. Each micro-model ($m_i$) is designed to be relatively small and specialized, focusing on specific tasks, data types, or cognitive functions (e.g., image analysis, natural language parsing, causal reasoning, specific domain knowledge).
 
-2.  **A Coordinator/Orchestrator ($\mathcal{C}$):** This is the crucial "conductor" of the MI orchestra (maybe A2A [8] or ACP Protocol [9]). The Coordinator is a system (which could itself be composed of AI models) responsible for understanding incoming tasks, selecting the appropriate micro-models ($m_i$ from $\mathcal{S}$) needed for the job, routing information between them, and synthesizing their outputs into a coherent final result or action. It manages the dynamic collaboration.
+2.  **A Coordinator/Orchestrator ($ \mathcal{C} $):** This is the crucial "conductor" of the MI orchestra (maybe A2A [8] or ACP Protocol [9]). The Coordinator is a system (which could itself be composed of AI models) responsible for understanding incoming tasks, selecting the appropriate micro-models ($m_i$ from $\mathcal{S}$) needed for the job, routing information between them, and synthesizing their outputs into a coherent final result or action. It manages the dynamic collaboration.
 
-3.  **An Integrated Knowledge Base ($\mathcal{K}$) (Optional but powerful):** To ground the system and enable learning, MI systems can incorporate shared knowledge bases – structured databases, vector stores, or knowledge graphs – that micro-models can query for relevant information or potentially update with new learnings.
+3.  **An Integrated Knowledge Base ($ \mathcal{K} $) (Optional but powerful):** To ground the system and enable learning, MI systems can incorporate shared knowledge bases – structured databases, vector stores, or knowledge graphs – that micro-models can query for relevant information or potentially update with new learnings.
 
 ### The "Learner Model" Philosophy
 
-Central to the MI paradigm is the nature of the individual micro-models ($m_i$). We envision these not as static, pre-programmed units, but as **"Learner Models."** This philosophy dictates that each model should be designed with specific characteristics:
+Central to the MI paradigm is the nature of the individual micro-models ($ m_i $). We envision these not as static, pre-programmed units, but as **"Learner Models."** This philosophy dictates that each model should be designed with specific characteristics:
 
 * **Small as Possible:** Prioritizing efficiency in size, computation, and energy use allows for widespread deployment, including on resource-constrained devices.
 * **Trainable as Possible:** Designed for easy fine-tuning and adaptation. This allows models to be specialized for niche tasks or user needs *after* initial deployment, without retraining the entire system.
@@ -111,7 +111,7 @@ Defining Micro Intelligence and its "Learner Model" philosophy is one thing; dem
 Computer science itself provides strong precedents favoring modular, ensemble-based approaches:
 
 * **Random Forests:** In machine learning, a Random Forest consistently outperforms a single, highly complex decision tree. It does this by training many simpler trees (analogous to our Learner Models) on different subsets of data and aggregating their outputs (e.g., by voting). This ensemble approach leverages diversity to improve accuracy and robustness, demonstrating that combining simpler, specialized units often yields better results than relying on one complex predictor.
-* **Relational Databases (SQL):** Before relational databases, data was often stored in rigid, hierarchical structures. The revolution of SQL came from breaking data into smaller, well-defined, modular tables (relations) representing specific entities. Complex queries are then performed by joining and manipulating these tables. This modularity provides immense flexibility, scalability, and maintainability – advantages mirrored in MI's approach of coordinating specialized Learner Models that might interact with structured knowledge ($\mathcal{K}$).
+* **Relational Databases (SQL):** Before relational databases, data was often stored in rigid, hierarchical structures. The revolution of SQL came from breaking data into smaller, well-defined, modular tables (relations) representing specific entities. Complex queries are then performed by joining and manipulating these tables. This modularity provides immense flexibility, scalability, and maintainability – advantages mirrored in MI's approach of coordinating specialized Learner Models that might interact with structured knowledge ($ \mathcal{K} $).
 
 ### Thought Experiments
 
