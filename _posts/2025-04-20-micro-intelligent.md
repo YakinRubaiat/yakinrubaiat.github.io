@@ -181,4 +181,4 @@ Games (My Fav):
 
 Video:
 
-1. [Do schools kill creativity? | Sir Ken Robinson](https://www.youtube.com/watch?v=iG9CE55wbtY&ab_channel=TED)
+1. [Do schools kill creativity?](https://www.youtube.com/watch?v=iG9CE55wbtY&ab_channel=TED)
