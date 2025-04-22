@@ -20,6 +20,7 @@ group :jekyll_plugins do
     gem 'jemoji'
     gem 'unicode_utils'
     gem 'webrick'
+    gem "jekyll-seo-tag"
 end
 group :other_plugins do
     gem 'css_parser'
