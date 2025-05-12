@@ -65,7 +65,7 @@ serve_schema_org: false # Include Schema.org in the HTML head
 og_image: # The site-wide (default for all links) Open Graph preview image
 
 # -----------------------------------------------------------------------------
-# Social integration
+# Social integrationp
 # -----------------------------------------------------------------------------
 
 acm_id: # your dl.acm.org/profile/id

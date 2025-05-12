@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Wedding Countdown</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        @keyframes subtleGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            /* Olive green gradient background */
+            background: linear-gradient(270deg, #D3D3A9, #B3C29D, #D3D3A9); /* Light Olive / Muted Sage Tones */
+            background-size: 600% 600%;
+            animation: subtleGradient 25s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+            overflow: hidden; /* Crucial for preventing scrollbars from off-screen drawing */
+        }
+
+        #background-animation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0; /* Particles behind everything else */
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(10vh) scale(0.3); opacity: 0; }
+            10% { transform: translateY(5vh) scale(0.7); opacity: 0.5; }
+            50% { opacity: 0.8; }
+            90% { transform: translateY(-80vh) scale(1); opacity: 0.3; }
+            100% { transform: translateY(-100vh) scale(0.8); opacity: 0; }
+        }
+        @keyframes floatUpSide {
+            0% { transform: translate(0, 10vh) scale(0.3); opacity: 0; }
+            10% { transform: translate(var(--drift-x), 5vh) scale(0.7); opacity: 0.5; }
+            50% { opacity: 0.7; }
+            90% { transform: translate(calc(var(--drift-x) * 2), -80vh) scale(1); opacity: 0.2; }
+            100% { transform: translate(calc(var(--drift-x) * 2.5), -100vh) scale(0.8); opacity: 0; }
+        }
+
+        /* --- L-System Canvas Styles --- */
+        .lsystem-canvas-container {
+            position: fixed;
+            bottom: 0;
+            width: 30%; /* Adjust width relative to viewport */
+            max-width: 400px; /* Max width for larger screens, increased slightly */
+            height: 100%;
+            max-height: 100vh; /* Ensure it doesn't exceed viewport height */
+            z-index: 2; /* Above main container, below potential modals */
+            pointer-events: none;
+            opacity: 0; /* Start hidden, fade in with JS */
+            transition: opacity 1s ease-in-out;
+        }
+        #left-lsystem-container {
+            left: 5px;
+        }
+        #right-lsystem-container {
+            right: 5px;
+            transform: scaleX(-1); /* Mirror the canvas drawing for the right side */
+        }
+        .lsystem-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        /* --- End L-System Canvas Styles --- */
+
+        .container { /* Main content card */
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.92);
+            padding: 50px 60px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12), 0 5px 15px rgba(0,0,0,0.08);
+            max-width: 90%;
+            width: 680px;
+            border: 1px solid rgba(0,0,0,0.03);
+            position: relative;
+            z-index: 1; /* Below L-System trees if they overlap, above particles */
+        }
+        .names {
+            font-family: 'Great Vibes', cursive;
+            font-size: 4rem;
+            color: #5D3A9B; /* Purple for names */
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+        .names-ampersand {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            color: #7C5AAA; /* Lighter purple for ampersand */
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+        .sub-heading {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 45px;
+        }
+        .decorative-flourish {
+            width: 80px;
+            height: 20px;
+            margin: 15px auto 25px;
+            opacity: 0.6;
+        }
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 45px;
+        }
+        .timer-box {
+            background-color: rgba(245, 240, 250, 0.75); /* Light lavender background for timer boxes */
+            padding: 18px;
+            border-radius: 12px;
+            min-width: 100px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+        .timer-box span {
+            display: block;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 400;
+            color: #4A0D6A; /* Dark purple for timer numbers */
+        }
+        .timer-box p {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .footer-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            font-weight: 300;
+            color: #444;
+            margin-top: 35px;
+        }
+
+        @media (max-width: 900px) {
+            .lsystem-canvas-container {
+                width: 28%;
+                max-width: 350px;
+            }
+        }
+        @media (max-width: 768px) {
+            .container { padding: 40px 30px; width: 90%; }
+            .names { font-size: 3.2rem; }
+            .names-ampersand { font-size: 2.8rem; }
+            .sub-heading { font-size: 1.3rem; }
+            .countdown-timer { gap: 15px; }
+            .timer-box span { font-size: 2.3rem; }
+            .timer-box { min-width: 80px; padding: 15px; }
+            .lsystem-canvas-container {
+                 width: 25%;
+                 max-width: 250px;
+            }
+            #left-lsystem-container { left: 2px; }
+            #right-lsystem-container { right: 2px; }
+        }
+        @media (max-width: 480px) {
+            .container { padding: 30px 15px; }
+            .names { font-size: 2.6rem; }
+            .names-ampersand { font-size: 2.2rem; }
+            .sub-heading { font-size: 1.1rem; margin-bottom: 30px;}
+            .decorative-flourish { width: 60px; margin: 10px auto 20px; }
+            .countdown-timer { flex-wrap: wrap; gap: 10px; }
+            .timer-box { min-width: calc(50% - 10px); padding: 12px; margin-bottom: 10px; }
+            .timer-box span { font-size: 2rem; }
+            .timer-box p { font-size: 0.7rem; }
+            .footer-text { font-size: 0.9rem; }
+            .lsystem-canvas-container { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="background-animation-container"></div>
+
+    <div id="left-lsystem-container" class="lsystem-canvas-container">
+        <canvas id="left-lsystem-canvas" class="lsystem-canvas"></canvas>
+    </div>
+    <div id="right-lsystem-container" class="lsystem-canvas-container">
+        <canvas id="right-lsystem-canvas" class="lsystem-canvas"></canvas>
+    </div>
+
+    <div class="container">
+        <h1 class="names">Sajratul Yakin Rubaiat</h1>
+        <h1 class="names-ampersand">&</h1>
+        <h1 class="names">Sheherjan Sheher</h1>
+        <svg class="decorative-flourish" viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 10 Q 25 0, 50 10 T 100 10" stroke="#A080C0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+        <p class="sub-heading">Are joyfully anticipating their wedding day</p>
+        <div id="countdown" class="countdown-timer">
+            <div class="timer-box"><span id="days">00</span><p>Days</p></div>
+            <div class="timer-box"><span id="hours">00</span><p>Hours</p></div>
+            <div class="timer-box"><span id="minutes">00</span><p>Minutes</p></div>
+            <div class="timer-box"><span id="seconds">00</span><p>Seconds</p></div>
+        </div>
+        <p class="footer-text">December 19, 2025</p>
+    </div>
+
+    <script>
+        // --- Countdown Timer Script ---
+        const countDownDate = new Date("Dec 19, 2025 00:00:00").getTime();
+        const x = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = countDownDate - now;
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            document.getElementById("days").innerText = String(days).padStart(2, '0');
+            document.getElementById("hours").innerText = String(hours).padStart(2, '0');
+            document.getElementById("minutes").innerText = String(minutes).padStart(2, '0');
+            document.getElementById("seconds").innerText = String(seconds).padStart(2, '0');
+            if (distance < 0) {
+                clearInterval(x);
+                const cd = document.getElementById("countdown");
+                cd.innerHTML = "<p style='font-size: 1.8rem; color: #5D3A9B; font-weight: 500; width: 100%; text-align: center; font-family: \"Playfair Display\", serif;'>The beautiful day has arrived!</p>";
+                cd.style.flexDirection = "column"; cd.style.alignItems = "center"; cd.style.justifyContent = "center";
+                if (document.querySelector('.timer-box')) { cd.style.height = document.querySelector('.timer-box').offsetHeight * 2 + 'px';}
+            }
+        }, 1000);
+
+        // --- Background Particle Animation Script ---
+        const particleAnimContainer = document.getElementById('background-animation-container');
+        const particleColors = [
+            'rgba(180, 190, 150, 0.5)', // Muted olive green
+            'rgba(150, 170, 130, 0.5)', // Darker muted olive
+            'rgba(200, 200, 160, 0.6)', // Lighter, slightly yellowish olive
+            'rgba(170, 180, 140, 0.4)'  // Softer olive
+        ];
+        function createParticle() {
+            const p = document.createElement('div'); p.classList.add('particle');
+            const sz = Math.random() * 15 + 5; p.style.width = `${sz}px`; p.style.height = `${sz}px`;
+            p.style.left = `${Math.random() * 100}vw`; p.style.bottom = `-${sz}px`;
+            p.style.backgroundColor = particleColors[Math.floor(Math.random() * particleColors.length)];
+            const dur = Math.random() * 10 + 8; const del = Math.random() * 5;
+            const drX = (Math.random() - 0.5) * 200; p.style.setProperty('--drift-x', `${drX}px`);
+            p.style.animation = Math.random() > 0.4 ? `floatUp ${dur}s linear ${del}s forwards` : `floatUpSide ${dur}s linear ${del}s forwards`;
+            p.addEventListener('animationend', () => p.remove()); particleAnimContainer.appendChild(p);
+        }
+        for (let i = 0; i < 15; i++) createParticle(); setInterval(createParticle, 700);
+
+        // --- L-System Tree Animation Script ---
+        const lsystemConfig = {
+            axiom: "X",
+            rules: {
+                "X": "F+[[X]-XL]-F[-FXL]+XL",
+                "F": "FF",
+                "L": "L"
+            },
+            angle: 25 * (Math.PI / 180),
+            iterations: 4,
+            segmentLengthScale: 0.025,
+            lengthFactor: 0.7,
+            lineWidth: 1.5,
+            branchColor: "rgba(85, 107, 47, 0.75)", // DarkOliveGreen for branches
+            leafColor: "rgba(107, 142, 35, 0.75)",   // OliveDrab for leaves
+            leafSize: 4.5,
+            growthDurationSeconds: 20, // UPDATED: Increased from 17 to 20 seconds
+            resetDelayMilliseconds: 2500,
+        };
+
+        function generateLSystemString(axiom, rules, iterations) {
+            let currentString = axiom;
+            for (let i = 0; i < iterations; i++) {
+                let nextString = "";
+                for (const char of currentString) {
+                    nextString += rules[char] || char;
+                }
+                currentString = nextString;
+            }
+            return currentString;
+        }
+
+        function drawLSystem(canvasId, systemString, config) {
+            const canvas = document.getElementById(canvasId);
+            const container = canvas.parentElement;
+            if (!canvas || !container) return;
+            const ctx = canvas.getContext('2d');
+
+            function setupCanvasDimensions() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            setupCanvasDimensions();
+
+            let turtle;
+            let pathSegmentIndex;
+            let animationFrameId;
+
+            function resetTurtleAndState() {
+                const segmentLength = canvas.height * config.segmentLengthScale;
+                turtle = {
+                    x: canvas.width / 2,
+                    y: canvas.height,
+                    angle: -Math.PI / 2,
+                    currentLength: segmentLength > 1 ? segmentLength : 1,
+                    stack: []
+                };
+                pathSegmentIndex = 0;
+                ctx.lineCap = "round";
+            }
+
+            const drawingCommands = systemString.split('').filter(cmd => cmd === 'F' || cmd === 'L').join('');
+            // Animation speed is calculated based on the number of drawing commands and desired duration
+            const animationSpeed = Math.max(1, Math.ceil(drawingCommands.length / (config.growthDurationSeconds * 60))); // Target ~60fps
+
+            function animateDraw() {
+                if (pathSegmentIndex >= systemString.length) { // Current growth cycle complete
+                    setTimeout(() => { // Pause before resetting and regrowing
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        resetTurtleAndState();
+                        animationFrameId = requestAnimationFrame(animateDraw); // Start new growth cycle
+                    }, config.resetDelayMilliseconds);
+                    return; // End current animation loop
+                }
+
+                let commandsThisFrame = 0;
+
+                for (let i = pathSegmentIndex; i < systemString.length; i++) {
+                    const command = systemString[i];
+                    pathSegmentIndex = i + 1; // Advance to next command
+
+                    if (command === "F") { // Draw branch segment
+                        ctx.beginPath();
+                        ctx.strokeStyle = config.branchColor;
+                        ctx.lineWidth = config.lineWidth;
+                        ctx.moveTo(turtle.x, turtle.y);
+                        const newX = turtle.x + turtle.currentLength * Math.cos(turtle.angle);
+                        const newY = turtle.y + turtle.currentLength * Math.sin(turtle.angle);
+                        ctx.lineTo(newX, newY);
+                        ctx.stroke();
+                        turtle.x = newX;
+                        turtle.y = newY;
+                        commandsThisFrame++;
+                    } else if (command === "L") { // Draw leaf
+                        ctx.beginPath();
+                        ctx.fillStyle = config.leafColor;
+                        ctx.arc(turtle.x, turtle.y, config.leafSize, 0, 2 * Math.PI);
+                        ctx.fill();
+                        commandsThisFrame++;
+                    } else if (command === "+") { // Turn right
+                        turtle.angle += config.angle;
+                    } else if (command === "-") { // Turn left
+                        turtle.angle -= config.angle;
+                    } else if (command === "[") { // Push current state
+                        turtle.stack.push({ x: turtle.x, y: turtle.y, angle: turtle.angle, length: turtle.currentLength });
+                        turtle.currentLength *= config.lengthFactor; // Scale down for sub-branch
+                        if (turtle.currentLength < 0.5) turtle.currentLength = 0.5; // Minimum length
+                    } else if (command === "]") { // Pop state (restore)
+                        if (turtle.stack.length > 0) {
+                            const popped = turtle.stack.pop();
+                            turtle.x = popped.x;
+                            turtle.y = popped.y;
+                            turtle.angle = popped.angle;
+                            turtle.currentLength = popped.length;
+                        }
+                    }
+                    // Limit commands per frame for smooth animation
+                    if (commandsThisFrame >= animationSpeed && (command === 'F' || command === 'L')) break;
+                }
+                animationFrameId = requestAnimationFrame(animateDraw); // Request next animation frame
+            }
+            
+            // Initial setup and start of the animation for this canvas instance
+            if (animationFrameId) cancelAnimationFrame(animationFrameId); // Clear any pre-existing animation loop
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before starting
+            resetTurtleAndState(); // Set initial turtle state
+            container.style.opacity = '0.85'; // Make L-system container visible
+            animationFrameId = requestAnimationFrame(animateDraw); // Start the animation
+        }
+
+        // Generate the L-system command string once (it's the same for both trees)
+        const lSystemCommands = generateLSystemString(lsystemConfig.axiom, lsystemConfig.rules, lsystemConfig.iterations);
+
+        // Initialize L-Systems on both canvases after a short delay for page elements to stabilize
+        setTimeout(() => {
+            drawLSystem("left-lsystem-canvas", lSystemCommands, lsystemConfig);
+            drawLSystem("right-lsystem-canvas", lSystemCommands, lsystemConfig);
+        }, 500);
+    </script>
+</body>
+</html>
