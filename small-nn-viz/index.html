@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Physarum Visualization (4-Layer + Results)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            color: #1f2937; /* Tailwind gray-800 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+        }
+        canvas { /* Style for both canvases */
+            display: block;
+            background-color: #ffffff; /* White background */
+            border: 1px solid #d1d5db; /* Tailwind gray-300 */
+            border-radius: 0.5rem; /* Rounded corners */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* Shadow */
+        }
+        #nnCanvas {
+             max-width: 100%;
+        }
+        #dataCanvas {
+            width: 150px;
+            height: 150px;
+            margin-top: 1rem;
+            background-color: #e5e7eb; /* gray-200 fallback */
+        }
+        .controls {
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+        }
+         .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        label {
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* medium */
+            color: #4b5563; /* gray-600 */
+        }
+        input[type="range"] {
+            cursor: pointer;
+            width: 8rem; /* w-32 */
+        }
+        button {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            font-weight: 600; /* semibold */
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem; /* rounded-md */
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+        button:disabled {
+            background-color: #9ca3af; /* gray-400 */
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280; /* gray-500 */
+            min-height: 1.25rem; /* Ensure space for text */
+            text-align: center;
+            width: 100%;
+        }
+        .info-text {
+            font-size: 0.875rem;
+            color: #4b5563; /* gray-600 */
+        }
+        .data-point { /* Style for points drawn on canvas */
+             width: 4px;
+             height: 4px;
+             border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="text-2xl font-bold mb-4 text-gray-700">Neural Network Training Visualization (4-Layer)</h1>
+    <p class="text-sm text-gray-600 mb-2 text-center">
+        Training: Thickness = Update Magnitude. Stopped: Thickness = Final Weight Magnitude. Hidden Layers use ReLU.
+    </p>
+
+    <div class="flex flex-wrap justify-center items-start gap-4">
+        <canvas id="nnCanvas" width="600" height="400"></canvas>
+        <div class="flex flex-col items-center">
+            <p class="text-sm font-medium text-gray-700 mb-1">Data & Decision Boundary</p>
+            <canvas id="dataCanvas" width="150" height="150"></canvas>
+        </div>
+    </div>
+
+
+    <div class="controls">
+        <button id="startButton">Start Training</button>
+        <button id="stopButton" disabled>Stop Training</button>
+        <button id="resetButton">Reset Weights</button>
+        <div class="control-group">
+             <label for="lrSlider">Learning Rate: <span id="lrValue">0.05</span></label>
+             <input type="range" id="lrSlider" min="0.001" max="0.5" step="0.001" value="0.05">
+        </div>
+        <div class="control-group">
+             <label for="speedSlider">Viz Speed: <span id="speedValue">10</span>x</label>
+             <input type="range" id="speedSlider" min="1" max="100" step="1" value="10">
+        </div>
+         <div class="control-group">
+             <label for="pointsSlider">Data Points/Class: <span id="pointsValue">100</span></label>
+             <input type="range" id="pointsSlider" min="20" max="500" step="10" value="100">
+        </div>
+    </div>
+    <div id="status">Status: Idle</div>
+
+
+    <script>
+        const nnCanvas = document.getElementById('nnCanvas');
+        const nnCtx = nnCanvas.getContext('2d');
+        const dataCanvas = document.getElementById('dataCanvas');
+        const dataCtx = dataCanvas.getContext('2d');
+
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const resetButton = document.getElementById('resetButton');
+        const lrSlider = document.getElementById('lrSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const pointsSlider = document.getElementById('pointsSlider');
+        const lrValueSpan = document.getElementById('lrValue');
+        const speedValueSpan = document.getElementById('speedValue');
+        const pointsValueSpan = document.getElementById('pointsValue');
+        const statusDiv = document.getElementById('status');
+
+        // --- Neural Network Parameters ---
+        const inputSize = 2;
+        const hidden1Size = 8; // Increased capacity
+        const hidden2Size = 6; // Increased capacity
+        const outputSize = 2;
+        let learningRate = parseFloat(lrSlider.value);
+        let vizSpeed = parseInt(speedSlider.value);
+        let numPointsPerClass = parseInt(pointsSlider.value);
+
+        // --- Network State ---
+        let weights_ih1, biases_h1, weights_h1h2, biases_h2, weights_h2o, biases_o;
+        let last_update_ih1, last_update_h1h2, last_update_h2o;
+        let max_update_magnitude = 0.01;
+        let max_weight_magnitude = 0.1;
+
+        // --- Training Data (Spiral) ---
+        let train_X = [];
+        let train_Y = [];
+        let current_data_index = 0;
+        let epoch = 0;
+        let total_steps = 0;
+
+        // --- Simulation State ---
+        let isRunning = false;
+        let animationFrameId = null;
+        let visualizationMode = 'training';
+        const boundaryDrawResolution = 45; // Increased resolution slightly more
+        const boundaryUpdateIntervalSteps = 300; // Update boundary every N steps
+
+
+        // --- Activation Functions ---
+        function sigmoid(x) {
+             const clippedX = Math.max(-15, Math.min(15, x)); // Prevent overflow
+            return 1 / (1 + Math.exp(-clippedX));
+        }
+        function sigmoidDerivative(sig_x) { return sig_x * (1 - sig_x); } // Input is sigmoid(x)
+
+        function relu(x) { return Math.max(0, x); }
+        function reluDerivative(relu_x) { return relu_x > 0 ? 1 : 0; } // Input is relu(x)
+
+        // --- Data Generation (Spiral) ---
+        function generateSpiralData(pointsPerClass) {
+            const X = []; const Y = []; const noise = 0.1;
+            for (let classNum = 0; classNum < 2; classNum++) {
+                for (let i = 0; i < pointsPerClass; i++) {
+                    const radius = i / pointsPerClass * 5;
+                    const theta = i / pointsPerClass * 2.5 * Math.PI + classNum * Math.PI;
+                    const x = radius * Math.sin(theta) + Math.random() * noise - noise / 2;
+                    const y = radius * Math.cos(theta) + Math.random() * noise - noise / 2;
+                    X.push([x / 5, y / 5]);
+                    Y.push(classNum === 0 ? [1, 0] : [0, 1]);
+                }
+            }
+            const combined = X.map((x_val, i) => ({ x: x_val, y: Y[i] }));
+            combined.sort(() => Math.random() - 0.5);
+            train_X = combined.map(d => d.x);
+            train_Y = combined.map(d => d.y);
+            console.log(`Generated ${train_X.length} spiral data points.`);
+            clearDecisionBoundary();
+            visualizeDataPoints();
+        }
+
+        // --- Visualize Data Points on dataCanvas ---
+        function visualizeDataPoints() {
+            const visSize = dataCanvas.width; const padding = 10;
+            const scale = (visSize - 2 * padding) / 2; const pointRadius = 2;
+            train_X.forEach((point, index) => {
+                const xPos = point[0] * scale + visSize / 2; const yPos = -point[1] * scale + visSize / 2;
+                dataCtx.beginPath(); dataCtx.arc(xPos, yPos, pointRadius, 0, 2 * Math.PI);
+                dataCtx.fillStyle = train_Y[index][0] === 1 ? '#3b82f6' : '#ef4444'; dataCtx.fill();
+            });
+        }
+
+        // --- Draw Decision Boundary ---
+        function drawDecisionBoundary() {
+             // ** FIX: Allow drawing even when not running, as long as weights exist **
+             if (!weights_ih1) return;
+
+            // console.log("Drawing decision boundary..."); // Less frequent logging
+            const visSize = dataCanvas.width;
+            const resolution = boundaryDrawResolution;
+            const step = visSize / resolution;
+            const padding = 10; const dataScale = (visSize - 2 * padding) / 2;
+            const originalFillStyle = dataCtx.fillStyle;
+
+            for (let i = 0; i < resolution; i++) {
+                for (let j = 0; j < resolution; j++) {
+                    const canvasX = i * step + step / 2; const canvasY = j * step + step / 2;
+                    const normX = (canvasX - visSize / 2) / dataScale; const normY = -(canvasY - visSize / 2) / dataScale;
+                    // Run forward pass with current weights
+                    const { out_act } = forwardPass([normX, normY]);
+                    const predictedClass = out_act[0] > out_act[1] ? 0 : 1;
+                    dataCtx.fillStyle = predictedClass === 0 ? 'rgba(59, 130, 246, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+                    dataCtx.fillRect(i * step, j * step, step, step);
+                }
+            }
+             dataCtx.fillStyle = originalFillStyle;
+            visualizeDataPoints(); // Redraw points on top
+        }
+
+         // --- Clear Decision Boundary ---
+         function clearDecisionBoundary() {
+             dataCtx.clearRect(0, 0, dataCanvas.width, dataCanvas.height);
+             dataCtx.fillStyle = '#e5e7eb'; dataCtx.fillRect(0, 0, dataCanvas.width, dataCanvas.height);
+             if (train_X && train_X.length > 0) { visualizeDataPoints(); }
+         }
+
+
+        // --- Initialization ---
+        function initializeNetwork() {
+            // Use Glorot/Xavier initialization style
+            weights_ih1 = Array(inputSize).fill(0).map(() => Array(hidden1Size).fill(0).map(() => (Math.random() - 0.5) * Math.sqrt(2 / inputSize)));
+            biases_h1 = Array(hidden1Size).fill(0); // Initialize biases to 0 (common practice)
+            weights_h1h2 = Array(hidden1Size).fill(0).map(() => Array(hidden2Size).fill(0).map(() => (Math.random() - 0.5) * Math.sqrt(2 / hidden1Size)));
+            biases_h2 = Array(hidden2Size).fill(0);
+            weights_h2o = Array(hidden2Size).fill(0).map(() => Array(outputSize).fill(0).map(() => (Math.random() - 0.5) * Math.sqrt(2 / hidden2Size)));
+            biases_o = Array(outputSize).fill(0);
+
+            last_update_ih1 = Array(inputSize).fill(0).map(() => Array(hidden1Size).fill(0));
+            last_update_h1h2 = Array(hidden1Size).fill(0).map(() => Array(hidden2Size).fill(0));
+            last_update_h2o = Array(hidden2Size).fill(0).map(() => Array(outputSize).fill(0));
+            max_update_magnitude = 0.01; max_weight_magnitude = 0.1;
+            epoch = 0; total_steps = 0; current_data_index = 0;
+            visualizationMode = 'training';
+            console.log("Network weights initialized.");
+            drawNetwork();
+        }
+
+        // --- Forward Pass ---
+        function forwardPass(input) {
+            // Input -> Hidden 1 (ReLU)
+            let h1_raw = Array(hidden1Size).fill(0);
+            for (let j=0; j<hidden1Size; j++) { for (let i=0; i<inputSize; i++) { h1_raw[j] += input[i] * weights_ih1[i][j]; } h1_raw[j] += biases_h1[j]; }
+            let h1_act = h1_raw.map(relu); // Use ReLU
+
+            // Hidden 1 -> Hidden 2 (ReLU)
+            let h2_raw = Array(hidden2Size).fill(0);
+            for (let k=0; k<hidden2Size; k++) { for (let j=0; j<hidden1Size; j++) { h2_raw[k] += h1_act[j] * weights_h1h2[j][k]; } h2_raw[k] += biases_h2[k]; }
+            let h2_act = h2_raw.map(relu); // Use ReLU
+
+            // Hidden 2 -> Output (Sigmoid)
+            let out_raw = Array(outputSize).fill(0);
+            for (let l=0; l<outputSize; l++) { for (let k=0; k<hidden2Size; k++) { out_raw[l] += h2_act[k] * weights_h2o[k][l]; } out_raw[l] += biases_o[l]; }
+            let out_act = out_raw.map(sigmoid); // Use Sigmoid for output probabilities
+
+            return { h1_raw, h1_act, h2_raw, h2_act, out_raw, out_act };
+        }
+
+        // --- Backward Pass & Update ---
+        function backwardPassAndUpdate(input, target, activations) {
+            // Note: We need the *activations* (outputs of activation functions)
+            // for calculating gradients correctly.
+            const { h1_act, h2_act, out_act } = activations;
+
+            // --- Calculate Errors ---
+            // Output layer error (MSE derivative * sigmoid derivative)
+            let output_errors = Array(outputSize).fill(0); let loss = 0;
+            for (let l=0; l<outputSize; l++) {
+                let error = target[l] - out_act[l];
+                loss += 0.5 * error * error;
+                // Derivative uses the output of the sigmoid (out_act)
+                output_errors[l] = error * sigmoidDerivative(out_act[l]);
+            }
+            loss /= outputSize;
+
+            // Hidden layer 2 error (Propagated error * ReLU derivative)
+            let h2_errors = Array(hidden2Size).fill(0);
+            for (let k=0; k<hidden2Size; k++) {
+                let error_sum = 0;
+                for (let l=0; l<outputSize; l++) { error_sum += output_errors[l] * weights_h2o[k][l]; }
+                // Derivative uses the output of ReLU (h2_act)
+                h2_errors[k] = error_sum * reluDerivative(h2_act[k]);
+            }
+
+            // Hidden layer 1 error (Propagated error * ReLU derivative)
+            let h1_errors = Array(hidden1Size).fill(0);
+            for (let j=0; j<hidden1Size; j++) {
+                let error_sum = 0;
+                for (let k=0; k<hidden2Size; k++) { error_sum += h2_errors[k] * weights_h1h2[j][k]; }
+                 // Derivative uses the output of ReLU (h1_act)
+                h1_errors[j] = error_sum * reluDerivative(h1_act[j]);
+            }
+
+            // --- Update Weights & Biases ---
+            let current_max_update = 0;
+
+            // Update Hidden2 -> Output
+            for (let k=0; k<hidden2Size; k++) { for (let l=0; l<outputSize; l++) { let grad = output_errors[l] * h2_act[k]; let update = learningRate * grad; weights_h2o[k][l] += update; last_update_h2o[k][l] = Math.abs(update); current_max_update = Math.max(current_max_update, last_update_h2o[k][l]); } }
+            for (let l=0; l<outputSize; l++) { biases_o[l] += learningRate * output_errors[l]; }
+
+            // Update Hidden1 -> Hidden2
+            for (let j=0; j<hidden1Size; j++) { for (let k=0; k<hidden2Size; k++) { let grad = h2_errors[k] * h1_act[j]; let update = learningRate * grad; weights_h1h2[j][k] += update; last_update_h1h2[j][k] = Math.abs(update); current_max_update = Math.max(current_max_update, last_update_h1h2[j][k]); } }
+            for (let k=0; k<hidden2Size; k++) { biases_h2[k] += learningRate * h2_errors[k]; }
+
+            // Update Input -> Hidden1
+            for (let i=0; i<inputSize; i++) { for (let j=0; j<hidden1Size; j++) { let grad = h1_errors[j] * input[i]; let update = learningRate * grad; weights_ih1[i][j] += update; last_update_ih1[i][j] = Math.abs(update); current_max_update = Math.max(current_max_update, last_update_ih1[i][j]); } }
+            for (let j=0; j<hidden1Size; j++) { biases_h1[j] += learningRate * h1_errors[j]; }
+
+            // Update max update magnitude normalization factor
+            if (current_max_update > max_update_magnitude) { max_update_magnitude = current_max_update; } else { max_update_magnitude *= 0.9995; } // Slow decay
+            max_update_magnitude = Math.max(max_update_magnitude, 1e-7);
+
+            return loss;
+        }
+
+        // --- Training Step ---
+        function trainStep() {
+             if (!train_X || train_X.length === 0) { return NaN; }
+            const input = train_X[current_data_index]; const target = train_Y[current_data_index];
+            const activations = forwardPass(input);
+            const loss = backwardPassAndUpdate(input, target, activations);
+            total_steps++; current_data_index = (current_data_index + 1) % train_X.length;
+            if (current_data_index === 0) { epoch++; }
+            return loss;
+        }
+
+        // --- Calculate Max Weight Magnitude ---
+        function calculateMaxWeightMagnitude() {
+            let maxW = 0;
+            const checkLayer = (weights) => { weights.forEach(row => row.forEach(w => maxW = Math.max(maxW, Math.abs(w)))); };
+            checkLayer(weights_ih1); checkLayer(weights_h1h2); checkLayer(weights_h2o);
+            max_weight_magnitude = Math.max(maxW, 0.01); // Prevent div by zero if all weights are tiny
+            console.log("Max weight magnitude:", max_weight_magnitude);
+        }
+
+        // --- Drawing Network ---
+        function drawNetwork() {
+            nnCtx.clearRect(0, 0, nnCanvas.width, nnCanvas.height);
+            const layer_spacing = nnCanvas.width / 5; const node_radius = 8;
+            const input_y = nnCanvas.height / (inputSize + 1); const h1_y = nnCanvas.height / (hidden1Size + 1);
+            const h2_y = nnCanvas.height / (hidden2Size + 1); const output_y = nnCanvas.height / (outputSize + 1);
+            const input_pos = Array(inputSize).fill(0).map((_, i) => ({ x: layer_spacing, y: input_y * (i + 1) }));
+            const h1_pos = Array(hidden1Size).fill(0).map((_, i) => ({ x: layer_spacing * 2, y: h1_y * (i + 1) }));
+            const h2_pos = Array(hidden2Size).fill(0).map((_, i) => ({ x: layer_spacing * 3, y: h2_y * (i + 1) }));
+            const output_pos = Array(outputSize).fill(0).map((_, i) => ({ x: layer_spacing * 4, y: output_y * (i + 1) }));
+            const max_line_width = 5;
+            const drawEdges = (startNodes, endNodes, weights, updates) => {
+                 const isTrainingMode = visualizationMode === 'training';
+                 const maxValueNorm = isTrainingMode ? max_update_magnitude : max_weight_magnitude;
+                for (let i = 0; i < startNodes.length; i++) {
+                    for (let j = 0; j < endNodes.length; j++) {
+                        nnCtx.beginPath(); nnCtx.moveTo(startNodes[i].x, startNodes[i].y); nnCtx.lineTo(endNodes[j].x, endNodes[j].y);
+                        // Ensure weights[i] and updates[i] exist before accessing weights[i][j]
+                        if (weights && weights[i] && updates && updates[i]) {
+                            const valueToVisualize = isTrainingMode ? updates[i][j] : Math.abs(weights[i][j]);
+                            const normalized_value = Math.min(1, valueToVisualize / (maxValueNorm + 1e-9)); // Epsilon for safety
+                            const line_width = 0.3 + normalized_value * (max_line_width - 0.3);
+                            const opacity = 0.15 + normalized_value * 0.85;
+                            const weight_sign = Math.sign(weights[i][j]);
+                            const color = weight_sign >= 0 ? `rgba(59, 130, 246, ${opacity})` : `rgba(239, 68, 68, ${opacity})`;
+                            nnCtx.strokeStyle = color; nnCtx.lineWidth = line_width; nnCtx.stroke();
+                        } else {
+                             console.error("Error accessing weights or updates at index", i, j);
+                        }
+                    }
+                }
+            };
+             drawEdges(input_pos, h1_pos, weights_ih1, last_update_ih1);
+             drawEdges(h1_pos, h2_pos, weights_h1h2, last_update_h1h2);
+             drawEdges(h2_pos, output_pos, weights_h2o, last_update_h2o);
+            nnCtx.lineWidth = 1; nnCtx.strokeStyle = '#4b5563';
+            [input_pos, h1_pos, h2_pos, output_pos].forEach((layer_pos, idx) => {
+                 let fill = ['#a5b4fc', '#6ee7b7', '#fde047', '#fca5a5'][idx]; // Input, H1, H2, Output
+                layer_pos.forEach(pos => { nnCtx.beginPath(); nnCtx.arc(pos.x, pos.y, node_radius, 0, 2*Math.PI); nnCtx.fillStyle = fill; nnCtx.fill(); nnCtx.stroke(); });
+            });
+        }
+
+        // --- Control Functions ---
+        function startTraining() {
+            if (isRunning) return;
+             if (!train_X || train_X.length === 0) { generateSpiralData(numPointsPerClass); }
+            visualizationMode = 'training'; isRunning = true;
+            startButton.disabled = true; stopButton.disabled = false; resetButton.disabled = true;
+            lrSlider.disabled = true; speedSlider.disabled = true; pointsSlider.disabled = true;
+            statusDiv.textContent = "Status: Training..."; console.log("Training started.");
+            let lastLoss = NaN;
+
+            function loop() {
+                if (!isRunning) return;
+                for(let i = 0; i < vizSpeed; i++) { lastLoss = trainStep(); }
+                drawNetwork();
+
+                 // Update boundary periodically based on steps
+                 if (total_steps > 0 && total_steps % boundaryUpdateIntervalSteps === 0) {
+                     clearDecisionBoundary();
+                     drawDecisionBoundary();
+                 }
+
+                if (total_steps % (20 * vizSpeed) === 0 || total_steps < vizSpeed) {
+                     if (!isNaN(lastLoss)) { statusDiv.textContent = `Status: Training... Epoch: ${epoch}, Step: ${total_steps}, Loss: ${lastLoss.toFixed(5)}`; }
+                     else { statusDiv.textContent = `Status: Training... Epoch: ${epoch}, Step: ${total_steps}`; }
+                }
+                animationFrameId = requestAnimationFrame(loop);
+            }
+            animationFrameId = requestAnimationFrame(loop);
+        }
+
+        function stopTraining() {
+            if (!isRunning) return;
+            isRunning = false; if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
+            visualizationMode = 'final_weights'; calculateMaxWeightMagnitude();
+            drawNetwork(); // Redraw with final weight viz
+            clearDecisionBoundary(); drawDecisionBoundary(); // Draw final boundary
+            startButton.disabled = false; stopButton.disabled = true; resetButton.disabled = false;
+            lrSlider.disabled = false; speedSlider.disabled = false; pointsSlider.disabled = false;
+            statusDiv.textContent = `Status: Stopped at Epoch ${epoch}, Step ${total_steps}. Showing final weights.`;
+            console.log("Training stopped. Switched to final weight visualization.");
+        }
+
+        function resetSimulation() {
+             if (isRunning) { stopTraining(); }
+             numPointsPerClass = parseInt(pointsSlider.value);
+             generateSpiralData(numPointsPerClass); initializeNetwork();
+             clearDecisionBoundary();
+             statusDiv.textContent = "Status: Reset."; console.log("Simulation reset.");
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', startTraining);
+        stopButton.addEventListener('click', stopTraining);
+        resetButton.addEventListener('click', resetSimulation);
+        lrSlider.addEventListener('input', (e) => { learningRate = parseFloat(e.target.value); lrValueSpan.textContent = learningRate.toFixed(3); });
+        speedSlider.addEventListener('input', (e) => { vizSpeed = parseInt(e.target.value); speedValueSpan.textContent = `${vizSpeed}x`; });
+        pointsSlider.addEventListener('input', (e) => {
+             pointsValueSpan.textContent = e.target.value;
+             if (!isRunning) { numPointsPerClass = parseInt(e.target.value); resetSimulation(); }
+         });
+
+        // --- Initial Setup ---
+        window.addEventListener('load', () => {
+             generateSpiralData(numPointsPerClass); initializeNetwork();
+             clearDecisionBoundary(); visualizeDataPoints();
+             statusDiv.textContent = "Status: Ready.";
+        });
+
+    </script>
+
+</body>
+</html>
