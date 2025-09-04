@@ -3,8 +3,8 @@ layout: post
 title: The Two Militaries of the United States
 date: 2025-08-27 10:00:00-0400
 description: An exploration of America's dual sources of power: its traditional military and its often-overlooked 'intellectual military' of academics and researchers.
-tags: []
-categories: technical
+tags: [Research]
+categories: [Random]
 giscus_comments: false
 related_posts: false
 ---
