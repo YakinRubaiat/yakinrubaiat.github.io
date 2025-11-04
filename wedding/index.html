@@ -436,7 +436,7 @@
 
         // --- Bird Animation Script ---
         const birdLayer = document.getElementById('bird-animation-layer');
-        function spawnBird() {
+        function spawnBird(options = {}) {
             if (!birdLayer) return;
             const bird = document.createElement('div');
             bird.classList.add('bird');
@@ -444,7 +444,10 @@
 
             const scale = (Math.random() * 0.4 + 0.7).toFixed(2);
             const duration = (Math.random() * 8 + 12).toFixed(1) + 's';
-            const delay = (Math.random() * 3).toFixed(1) + 's';
+            const delaySeconds = typeof options.delaySeconds === 'number'
+                ? Math.max(0, options.delaySeconds)
+                : Math.random() * 3;
+            const delay = delaySeconds.toFixed(1) + 's';
             const sway = (Math.random() * 18 + 10).toFixed(1) + 'vh';
             const startY = (Math.random() * 40 + 10).toFixed(1) + 'vh';
             const reverse = Math.random() > 0.5;
@@ -465,13 +468,13 @@
 
         if (birdLayer) {
             for (let i = 0; i < 6; i++) {
-                setTimeout(spawnBird, i * 800);
+                setTimeout(() => spawnBird({ delaySeconds: 0 }), i * 400);
             }
             setInterval(() => {
                 if (birdLayer.childElementCount < 16) {
                     const birdsToSpawn = 1 + Math.floor(Math.random() * 2);
                     for (let i = 0; i < birdsToSpawn; i++) {
-                        setTimeout(spawnBird, i * 350);
+                        setTimeout(() => spawnBird(), i * 350);
                     }
                 }
             }, 2600);
