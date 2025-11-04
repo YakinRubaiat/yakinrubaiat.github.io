@@ -66,7 +66,10 @@
 
         .container {
             text-align: center;
-            background-color: rgba(255, 255, 255, 0.85); /* More transparent */
+            background-image: url('./background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             padding: 50px 60px;
             border-radius: 25px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0,0,0,0.05);
@@ -75,6 +78,7 @@
             border: 1px solid rgba(0,0,0,0.05);
             position: relative;
             z-index: 1;
+            overflow: hidden;
         }
         .names {
             font-family: 'Great Vibes', cursive;
