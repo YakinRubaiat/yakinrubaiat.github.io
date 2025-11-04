@@ -48,6 +48,107 @@
             opacity: 0;
         }
 
+        #bird-animation-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .bird {
+            position: absolute;
+            left: 0;
+            width: 36px;
+            height: 22px;
+            pointer-events: none;
+            opacity: 0;
+            --scale: 1;
+            --duration: 16s;
+            --delay: 0s;
+            --sway: 14vh;
+            --pointer-x: 0px;
+            --pointer-y: 0px;
+            animation-name: birdFly;
+            animation-duration: var(--duration);
+            animation-timing-function: linear;
+            animation-delay: var(--delay);
+            animation-fill-mode: forwards;
+        }
+
+        .bird--reverse {
+            left: auto;
+            right: 0;
+            animation-name: birdFlyReverse;
+        }
+
+        .bird .wing {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.85);
+            border-bottom: none;
+            border-right: none;
+            border-radius: 50% 50% 0 0;
+            top: 6px;
+        }
+
+        .bird .wing-left {
+            left: 0;
+            transform-origin: bottom right;
+            animation: wingFlapLeft 0.8s ease-in-out infinite alternate;
+        }
+
+        .bird .wing-right {
+            left: 16px;
+            border-right: 2px solid rgba(255, 255, 255, 0.85);
+            border-left: none;
+            transform-origin: bottom left;
+            animation: wingFlapRight 0.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes birdFly {
+            0% {
+                transform: translate(calc(-15vw + var(--pointer-x, 0px)), calc(var(--pointer-y, 0px))) scale(var(--scale, 1));
+                opacity: 0;
+            }
+            20% { opacity: 1; }
+            50% {
+                transform: translate(calc(45vw + var(--pointer-x, 0px)), calc(-0.4 * var(--sway, 14vh) + var(--pointer-y, 0px))) scale(var(--scale, 1));
+            }
+            100% {
+                transform: translate(calc(115vw + var(--pointer-x, 0px)), calc(-1 * var(--sway, 14vh) + var(--pointer-y, 0px))) scale(var(--scale, 1));
+                opacity: 0;
+            }
+        }
+
+        @keyframes birdFlyReverse {
+            0% {
+                transform: translate(calc(15vw + var(--pointer-x, 0px)), calc(var(--pointer-y, 0px))) scale(var(--scale, 1));
+                opacity: 0;
+            }
+            20% { opacity: 1; }
+            50% {
+                transform: translate(calc(-45vw + var(--pointer-x, 0px)), calc(-0.4 * var(--sway, 14vh) + var(--pointer-y, 0px))) scale(var(--scale, 1));
+            }
+            100% {
+                transform: translate(calc(-115vw + var(--pointer-x, 0px)), calc(-1 * var(--sway, 14vh) + var(--pointer-y, 0px))) scale(var(--scale, 1));
+                opacity: 0;
+            }
+        }
+
+        @keyframes wingFlapLeft {
+            0% { transform: rotate(18deg); }
+            100% { transform: rotate(-28deg); }
+        }
+
+        @keyframes wingFlapRight {
+            0% { transform: scaleX(-1) rotate(18deg); }
+            100% { transform: scaleX(-1) rotate(-28deg); }
+        }
+
         @keyframes floatUp {
             0% { transform: translateY(10vh) scale(0.3); opacity: 0; }
             10% { transform: translateY(5vh) scale(0.7); opacity: 0.5; }
@@ -246,6 +347,7 @@
 </head>
 <body>
     <div id="background-animation-container"></div>
+    <div id="bird-animation-layer"></div>
 
     <section class="hero-wrapper">
         <canvas id="vine-canvas"></canvas>
@@ -331,6 +433,79 @@
         }
         for (let i = 0; i < 20; i++) createParticle();
         setInterval(createParticle, 800);
+
+        // --- Bird Animation Script ---
+        const birdLayer = document.getElementById('bird-animation-layer');
+        function spawnBird() {
+            if (!birdLayer) return;
+            const bird = document.createElement('div');
+            bird.classList.add('bird');
+            bird.innerHTML = '<span class="wing wing-left"></span><span class="wing wing-right"></span>';
+
+            const scale = (Math.random() * 0.4 + 0.7).toFixed(2);
+            const duration = (Math.random() * 8 + 12).toFixed(1) + 's';
+            const delay = (Math.random() * 3).toFixed(1) + 's';
+            const sway = (Math.random() * 18 + 10).toFixed(1) + 'vh';
+            const startY = (Math.random() * 40 + 10).toFixed(1) + 'vh';
+            const reverse = Math.random() > 0.5;
+
+            bird.style.setProperty('--scale', scale);
+            bird.style.setProperty('--duration', duration);
+            bird.style.setProperty('--delay', delay);
+            bird.style.setProperty('--sway', sway);
+            bird.style.top = startY;
+
+            if (reverse) {
+                bird.classList.add('bird--reverse');
+            }
+
+            birdLayer.appendChild(bird);
+            bird.addEventListener('animationend', () => bird.remove());
+        }
+
+        if (birdLayer) {
+            for (let i = 0; i < 6; i++) {
+                setTimeout(spawnBird, i * 800);
+            }
+            setInterval(() => {
+                if (birdLayer.childElementCount < 16) {
+                    const birdsToSpawn = 1 + Math.floor(Math.random() * 2);
+                    for (let i = 0; i < birdsToSpawn; i++) {
+                        setTimeout(spawnBird, i * 350);
+                    }
+                }
+            }, 2600);
+            let lastMouseSpawn = 0;
+            window.addEventListener('mousemove', (event) => {
+                const { clientX, clientY } = event;
+                const layerRect = birdLayer.getBoundingClientRect();
+                const normalizedX = Math.max(0, Math.min(1, (clientX - layerRect.left) / layerRect.width));
+                const normalizedY = Math.max(0, Math.min(1, (clientY - layerRect.top) / layerRect.height));
+
+                birdLayer.querySelectorAll('.bird').forEach((birdElement, idx) => {
+                    const horizontalRange = 24 + (idx % 5) * 4;
+                    const verticalRange = 18 + (idx % 7) * 3;
+                    const offsetX = (normalizedX - 0.5) * horizontalRange;
+                    const offsetY = (normalizedY - 0.5) * verticalRange;
+                    birdElement.style.setProperty('--pointer-x', `${offsetX.toFixed(2)}px`);
+                    birdElement.style.setProperty('--pointer-y', `${offsetY.toFixed(2)}px`);
+                });
+
+                const now = performance.now();
+                if ((now - lastMouseSpawn) > 400 && Math.random() < 0.35 && birdLayer.childElementCount < 18) {
+                    spawnBird();
+                    lastMouseSpawn = now;
+                }
+            }, { passive: true });
+
+            window.addEventListener('mouseout', (event) => {
+                if (event.relatedTarget) return;
+                birdLayer.querySelectorAll('.bird').forEach((birdElement) => {
+                    birdElement.style.setProperty('--pointer-x', '0px');
+                    birdElement.style.setProperty('--pointer-y', '0px');
+                });
+            }, { passive: true });
+        }
 
         // --- L-System Vine Animation Script ---
         const vineConfig = {
