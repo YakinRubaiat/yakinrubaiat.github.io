@@ -57,14 +57,25 @@
         }
 
         #vine-canvas {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 2; /* Above container */
+            z-index: 2;
             pointer-events: none;
         }
+
+        .hero-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
 
         .container {
             text-align: center;
@@ -235,24 +246,26 @@
 </head>
 <body>
     <div id="background-animation-container"></div>
-    <canvas id="vine-canvas"></canvas>
 
-    <div class="container">
-        <h1 class="names">Sheherjan Haq</h1>
-        <h1 class="names-ampersand">&</h1>
-        <h1 class="names">Sajratul Yakin Rubaiat</h1>
-        <svg class="decorative-flourish" viewBox="0 0 120 25" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 12.5 Q 30 -5, 60 12.5 T 120 12.5" stroke="#DABFDE" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </svg>
-        <p class="sub-heading">Are joyfully anticipating their wedding day</p>
-        <p class="footer-text">December 19, 2025</p>
-        <div id="countdown" class="countdown-timer">
-            <div class="timer-box"><span id="days">00</span><p>Days</p></div>
-            <div class="timer-box"><span id="hours">00</span><p>Hours</p></div>
-            <div class="timer-box"><span id="minutes">00</span><p>Minutes</p></div>
-            <div class="timer-box"><span id="seconds">00</span><p>Seconds</p></div>
+    <section class="hero-wrapper">
+        <canvas id="vine-canvas"></canvas>
+        <div class="container">
+            <h1 class="names">Sheherjan Haq</h1>
+            <h1 class="names-ampersand">&</h1>
+            <h1 class="names">Sajratul Yakin Rubaiat</h1>
+            <svg class="decorative-flourish" viewBox="0 0 120 25" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 12.5 Q 30 -5, 60 12.5 T 120 12.5" stroke="#DABFDE" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <p class="sub-heading">Are joyfully anticipating their wedding day</p>
+            <p class="footer-text">December 19, 2025</p>
+            <div id="countdown" class="countdown-timer">
+                <div class="timer-box"><span id="days">00</span><p>Days</p></div>
+                <div class="timer-box"><span id="hours">00</span><p>Hours</p></div>
+                <div class="timer-box"><span id="minutes">00</span><p>Minutes</p></div>
+                <div class="timer-box"><span id="seconds">00</span><p>Seconds</p></div>
+            </div>
         </div>
-    </div>
+    </section>
 
     <section class="location-section">
         <div class="location-details">
@@ -353,16 +366,35 @@
         function drawLSystem() {
             const canvas = document.getElementById('vine-canvas');
             const contentBox = document.querySelector('.container');
-            if (!canvas || !contentBox) return;
+            const heroWrapper = document.querySelector('.hero-wrapper');
+            if (!canvas || !contentBox || !heroWrapper) return;
             const ctx = canvas.getContext('2d');
 
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            function setCanvasSize() {
+                const wrapperWidth = heroWrapper.clientWidth;
+                const wrapperHeight = heroWrapper.clientHeight;
+                const dpr = window.devicePixelRatio || 1;
+                canvas.style.width = `${wrapperWidth}px`;
+                canvas.style.height = `${wrapperHeight}px`;
+                canvas.width = Math.max(1, Math.floor(wrapperWidth * dpr));
+                canvas.height = Math.max(1, Math.floor(wrapperHeight * dpr));
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
 
-            const boxRect = contentBox.getBoundingClientRect();
+            setCanvasSize();
+
             const lSystemString = generateLSystemString(vineConfig.axiom, vineConfig.rules, vineConfig.iterations);
-            
-            let animationFrameId;
+            const frameRequests = new Set();
+            let restartTimeoutId;
+
+            function cancelAnimationLoop() {
+                frameRequests.forEach(id => cancelAnimationFrame(id));
+                frameRequests.clear();
+                if (restartTimeoutId) {
+                    clearTimeout(restartTimeoutId);
+                    restartTimeoutId = undefined;
+                }
+            }
 
             function animate(startX, startY, initialAngle, mirror) {
                 let turtle = {
@@ -379,10 +411,9 @@
                 const animationSpeed = Math.max(1, Math.ceil(drawingCommands.length / (vineConfig.growthDurationSeconds * 60)));
 
                 function drawFrame() {
-                    let commandsThisFrame = 0;
                     for (let i = 0; i < animationSpeed; i++) {
                         if (pathSegmentIndex >= lSystemString.length) break;
-                        
+
                         const command = lSystemString[pathSegmentIndex];
                         pathSegmentIndex++;
 
@@ -421,31 +452,36 @@
                     }
 
                     if (pathSegmentIndex < lSystemString.length) {
-                        requestAnimationFrame(drawFrame);
+                        const id = requestAnimationFrame(() => {
+                            frameRequests.delete(id);
+                            drawFrame();
+                        });
+                        frameRequests.add(id);
                     }
                 }
                 drawFrame();
             }
 
             function startAnimation() {
-                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                cancelAnimationLoop();
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // Left Vine
-                animate(boxRect.left, boxRect.bottom, -Math.PI / 2.2, false);
-                // Right Vine
-                animate(boxRect.right, boxRect.bottom, -Math.PI / 1.8, true);
+                const leftStart = contentBox.offsetLeft;
+                const rightStart = contentBox.offsetLeft + contentBox.offsetWidth;
+                const bottomStart = contentBox.offsetTop + contentBox.offsetHeight;
 
-                setTimeout(startAnimation, vineConfig.growthDurationSeconds * 1000 + vineConfig.resetDelayMilliseconds);
+                animate(leftStart, bottomStart, -Math.PI / 2.2, false);
+                animate(rightStart, bottomStart, -Math.PI / 1.8, true);
+
+                restartTimeoutId = setTimeout(startAnimation, vineConfig.growthDurationSeconds * 1000 + vineConfig.resetDelayMilliseconds);
             }
 
             startAnimation();
 
             window.addEventListener('resize', () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                // Could restart animation on resize if needed, but for now we let it continue
-            });
+                setCanvasSize();
+                startAnimation();
+            }, { passive: true });
         }
 
         // Wait for page to be fully loaded to get correct box dimensions
