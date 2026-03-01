@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-label="Cosine similarity geometry">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fbff" />
+      <stop offset="100%" stop-color="#edf3ff" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="1200" height="700" fill="url(#bg)" />
+  <text x="70" y="72" font-size="34" font-family="Inter, Arial, sans-serif" font-weight="700" fill="#111827">Cosine Similarity Geometry</text>
+  <text x="70" y="104" font-size="19" font-family="Inter, Arial, sans-serif" fill="#334155">Similarity is based on angle, not just length.</text>
+  <rect x="50" y="130" width="780" height="500" rx="18" fill="#ffffff" stroke="#cad7ea" stroke-width="1.6" filter="url(#shadow)" />
+  <line x1="260" y1="520" x2="910" y2="520" stroke="#c6d3e7" stroke-width="2" />
+  <line x1="260" y1="520" x2="260" y2="110" stroke="#c6d3e7" stroke-width="2" />
+  <line x1="260" y1="520" x2="900.00" y2="520.00" stroke="#0ea5e9" stroke-width="7" stroke-linecap="round" />
+  <line x1="260" y1="520" x2="724.26" y2="206.85" stroke="#f97316" stroke-width="7" stroke-linecap="round" />
+  <path d="M 350 520 A 90 90 0 0 0 334.61 469.67" fill="none" stroke="#111827" stroke-width="2.2" />
+  <text x="870" y="555" font-size="22" font-family="Inter, Arial, sans-serif" fill="#0ea5e9" font-weight="700">u</text>
+  <text x="742.26" y="192.85" font-size="22" font-family="Inter, Arial, sans-serif" fill="#f97316" font-weight="700">v</text>
+  <text x="368" y="493" font-size="20" font-family="Inter, Arial, sans-serif" fill="#111827">θ = 34°</text>
+  <text x="870" y="200" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="700" fill="#0f172a">Formula</text>
+  <text x="870" y="245" font-size="20" font-family="Inter, Arial, sans-serif" fill="#334155">cos(u, v) = (u · v) / (||u|| ||v||)</text>
+  <text x="870" y="315" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="700" fill="#0f172a">This example</text>
+  <text x="870" y="352" font-size="18" font-family="Inter, Arial, sans-serif" fill="#334155">angle = 34°</text>
+  <text x="870" y="382" font-size="18" font-family="Inter, Arial, sans-serif" fill="#334155">cos(θ) = 0.829</text>
+  <text x="870" y="426" font-size="17" font-family="Inter, Arial, sans-serif" fill="#475569">Smaller angle means higher semantic similarity.</text>
+  <text x="70" y="664" font-size="15" font-family="Inter, Arial, sans-serif" fill="#475569">For normalized embeddings, cosine similarity and dot product are equivalent.</text>
+</svg>
