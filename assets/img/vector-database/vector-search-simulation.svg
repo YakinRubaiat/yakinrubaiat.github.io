@@ -6,10 +6,13 @@
       <stop offset="100%" stop-color="#edf3ff" />
     </linearGradient>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.18"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.16"/>
     </filter>
   </defs>
   <rect x="0" y="0" width="1400" height="880" fill="url(#bg)" />
+  <rect x="80" y="80" width="1120" height="700" rx="20" fill="none" stroke="#b8c7dd" stroke-width="2"/>
+  <text x="100" y="55" font-size="36" font-family="Inter, Arial, sans-serif" font-weight="700" fill="#111827">Semantic Search Simulation</text>
+  <text x="100" y="88" font-size="20" font-family="Inter, Arial, sans-serif" fill="#334155">Embedding clusters and nearest-neighbor retrieval for one query vector.</text>
   <line x1="100" y1="100" x2="100" y2="760" stroke="#dbe4f3" stroke-width="1" />
   <line x1="150" y1="100" x2="150" y2="760" stroke="#dbe4f3" stroke-width="1" />
   <line x1="200" y1="100" x2="200" y2="760" stroke="#dbe4f3" stroke-width="1" />
@@ -46,9 +49,6 @@
   <line x1="100" y1="650" x2="1180" y2="650" stroke="#dbe4f3" stroke-width="1" />
   <line x1="100" y1="700" x2="1180" y2="700" stroke="#dbe4f3" stroke-width="1" />
   <line x1="100" y1="750" x2="1180" y2="750" stroke="#dbe4f3" stroke-width="1" />
-  <rect x="80" y="80" width="1120" height="700" rx="20" fill="none" stroke="#b8c7dd" stroke-width="2"/>
-  <text x="100" y="55" font-size="36" font-family="Inter, Arial, sans-serif" font-weight="700" fill="#111827">Vector Search Simulation</text>
-  <text x="100" y="88" font-size="20" font-family="Inter, Arial, sans-serif" fill="#334155">Clusters represent semantic neighborhoods in embedding space.</text>
   <circle cx="310.00" cy="240.00" r="120" fill="#4f46e5" fill-opacity="0.10" stroke="#4f46e5" stroke-opacity="0.45" stroke-width="2" />
   <circle cx="299.91" cy="230.49" r="4.6" fill="#4f46e5" fill-opacity="0.82" />
   <circle cx="302.21" cy="278.61" r="4.6" fill="#4f46e5" fill-opacity="0.82" />
@@ -92,7 +92,7 @@
   <circle cx="305.08" cy="281.21" r="4.6" fill="#4f46e5" fill-opacity="0.82" />
   <circle cx="259.36" cy="223.85" r="4.6" fill="#4f46e5" fill-opacity="0.82" />
   <circle cx="181.11" cy="180.46" r="4.6" fill="#4f46e5" fill-opacity="0.82" />
-  <text x="255.00" y="108.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#4f46e5">AI Research</text>
+  <text x="254.00" y="108.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#4f46e5">AI Research</text>
   <circle cx="560.00" cy="520.00" r="120" fill="#0ea5e9" fill-opacity="0.10" stroke="#0ea5e9" stroke-opacity="0.45" stroke-width="2" />
   <circle cx="511.74" cy="547.02" r="4.6" fill="#0ea5e9" fill-opacity="0.82" />
   <circle cx="661.45" cy="518.80" r="4.6" fill="#0ea5e9" fill-opacity="0.82" />
@@ -140,7 +140,7 @@
   <circle cx="661.64" cy="486.66" r="4.6" fill="#0ea5e9" fill-opacity="0.82" />
   <circle cx="413.24" cy="539.46" r="4.6" fill="#0ea5e9" fill-opacity="0.82" />
   <circle cx="579.53" cy="480.48" r="4.6" fill="#0ea5e9" fill-opacity="0.82" />
-  <text x="505.00" y="388.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#0ea5e9">Databases</text>
+  <text x="504.00" y="388.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#0ea5e9">Databases</text>
   <circle cx="360.00" cy="620.00" r="120" fill="#16a34a" fill-opacity="0.10" stroke="#16a34a" stroke-opacity="0.45" stroke-width="2" />
   <circle cx="425.33" cy="656.45" r="4.6" fill="#16a34a" fill-opacity="0.82" />
   <circle cx="285.38" cy="651.09" r="4.6" fill="#16a34a" fill-opacity="0.82" />
@@ -182,7 +182,7 @@
   <circle cx="309.42" cy="711.64" r="4.6" fill="#16a34a" fill-opacity="0.82" />
   <circle cx="434.57" cy="649.24" r="4.6" fill="#16a34a" fill-opacity="0.82" />
   <circle cx="609.77" cy="618.06" r="4.6" fill="#16a34a" fill-opacity="0.82" />
-  <text x="305.00" y="488.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#16a34a">Backend Systems</text>
+  <text x="304.00" y="488.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#16a34a">Backend Systems</text>
   <circle cx="780.00" cy="300.00" r="120" fill="#f59e0b" fill-opacity="0.10" stroke="#f59e0b" stroke-opacity="0.45" stroke-width="2" />
   <circle cx="829.63" cy="319.07" r="4.6" fill="#f59e0b" fill-opacity="0.82" />
   <circle cx="762.25" cy="443.60" r="4.6" fill="#f59e0b" fill-opacity="0.82" />
@@ -228,7 +228,7 @@
   <circle cx="713.84" cy="313.06" r="4.6" fill="#f59e0b" fill-opacity="0.82" />
   <circle cx="796.16" cy="257.24" r="4.6" fill="#f59e0b" fill-opacity="0.82" />
   <circle cx="831.83" cy="306.02" r="4.6" fill="#f59e0b" fill-opacity="0.82" />
-  <text x="725.00" y="168.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#f59e0b">Search</text>
+  <text x="724.00" y="168.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#f59e0b">Search</text>
   <circle cx="980.00" cy="580.00" r="120" fill="#ef4444" fill-opacity="0.10" stroke="#ef4444" stroke-opacity="0.45" stroke-width="2" />
   <circle cx="913.94" cy="676.91" r="4.6" fill="#ef4444" fill-opacity="0.82" />
   <circle cx="1035.41" cy="570.81" r="4.6" fill="#ef4444" fill-opacity="0.82" />
@@ -268,7 +268,7 @@
   <circle cx="984.89" cy="591.61" r="4.6" fill="#ef4444" fill-opacity="0.82" />
   <circle cx="982.58" cy="642.42" r="4.6" fill="#ef4444" fill-opacity="0.82" />
   <circle cx="995.96" cy="562.68" r="4.6" fill="#ef4444" fill-opacity="0.82" />
-  <text x="925.00" y="448.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#ef4444">Product Docs</text>
+  <text x="924.00" y="448.00" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="600" fill="#ef4444">Product Docs</text>
   <line x1="860.00" y1="430.00" x2="884.10" y2="418.00" stroke="#f59e0b" stroke-width="3" stroke-opacity="0.85" stroke-linecap="round" />
   <circle cx="884.10" cy="418.00" r="7.3" fill="none" stroke="#f59e0b" stroke-width="2.5" />
   <line x1="860.00" y1="430.00" x2="805.39" y2="412.48" stroke="#f59e0b" stroke-width="3" stroke-opacity="0.85" stroke-linecap="round" />
@@ -287,10 +287,10 @@
   <circle cx="860.00" cy="430.00" r="22" fill="none" stroke="#111827" stroke-opacity="0.25" stroke-width="2"/>
   <text x="880.00" y="436.00" font-size="17" font-family="Inter, Arial, sans-serif" fill="#111827" font-weight="600">Query embedding</text>
   <rect x="1220" y="120" width="160" height="420" rx="14" fill="#ffffff" stroke="#c9d6ea" stroke-width="1.5" filter="url(#shadow)" />
-  <text x="1235" y="155" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700" fill="#0f172a">Retrieval Steps</text>
-  <text x="1235" y="190" font-size="14" font-family="Inter, Arial, sans-serif" fill="#334155">1. Embed query</text>
-  <text x="1235" y="220" font-size="14" font-family="Inter, Arial, sans-serif" fill="#334155">2. ANN candidate search</text>
-  <text x="1235" y="250" font-size="14" font-family="Inter, Arial, sans-serif" fill="#334155">3. Distance rerank</text>
+  <text x="1235" y="155" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700" fill="#0f172a">Pipeline</text>
+  <text x="1235" y="190" font-size="14" font-family="Inter, Arial, sans-serif" fill="#334155">1. Encode query</text>
+  <text x="1235" y="220" font-size="14" font-family="Inter, Arial, sans-serif" fill="#334155">2. ANN search</text>
+  <text x="1235" y="250" font-size="14" font-family="Inter, Arial, sans-serif" fill="#334155">3. Rerank</text>
   <text x="1235" y="280" font-size="14" font-family="Inter, Arial, sans-serif" fill="#334155">4. Return top-k</text>
   <line x1="1235" y1="304" x2="1365" y2="304" stroke="#d8e2f0" stroke-width="1" />
   <text x="1235" y="332" font-size="14" font-family="Inter, Arial, sans-serif" fill="#0f172a" font-weight="600">Nearest neighbors</text>
@@ -309,5 +309,5 @@
   <circle cx="1243" cy="494" r="6" fill="#f59e0b" />
   <text x="1256" y="499" font-size="12.5" font-family="Inter, Arial, sans-serif" fill="#334155">#5 Search</text>
   <text x="1365" y="499" text-anchor="end" font-size="12" font-family="Inter, Arial, sans-serif" fill="#64748b">sim 0.010</text>
-  <text x="100" y="820" font-size="15" font-family="Inter, Arial, sans-serif" fill="#475569">Generated with Python: semantic clusters + nearest-neighbor lookup visualization.</text>
+  <text x="100" y="820" font-size="15" font-family="Inter, Arial, sans-serif" fill="#475569">Generated from Python with deterministic random seed.</text>
 </svg>
