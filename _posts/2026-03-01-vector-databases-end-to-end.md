@@ -3,7 +3,7 @@ layout: post
 title: Vector Databases, End to End
 date: 2026-03-01 10:00:00-0800
 description: A detailed guide to embeddings, similarity geometry, ANN indexing (HNSW/IVF/LSH/PQ), and production vector search design.
-tags: [Machine Learning, Databases, Search, RAG]
+tags: [AI, vector-database, embeddings, ann-search, semantic-search, rag]
 categories: [Technical]
 math: true
 giscus_comments: false
