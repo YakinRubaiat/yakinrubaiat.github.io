@@ -468,6 +468,29 @@ categories: [Technical]
     50%       { transform: translateX(-50%) translateY(8px); }
   }
 
+  /* MEME / INLINE IMAGES */
+  .meme-wrap {
+    margin: 2.5rem auto;
+    text-align: center;
+  }
+
+  .meme-wrap img {
+    max-width: 480px;
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+    display: block;
+    margin: 0 auto;
+  }
+
+  .meme-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-top: 0.6rem;
+  }
+
   /* RESPONSIVE */
   @media (max-width: 600px) {
     .comparison { grid-template-columns: 1fr; }
@@ -507,9 +530,31 @@ categories: [Technical]
 <div class="content">
   <div class="chapter visible" style="margin-bottom:4rem;">
     <div class="prose">
-      <p>Most deep learning tutorials start from the top. They show you a transformer, wave their hands at the attention mechanism, and expect you to somehow reverse-engineer an intuition from a diagram with a hundred arrows.</p>
-      <p>This is not that tutorial.</p>
-      <p>We start from the very bottom — a single equation you probably already know — and build everything up from there. Each chapter adds <em>one clever trick</em> to what came before. By the end, you will see that the architecture powering GPT-4 is not magic. It is just logistic regression, stacked cleverly.</p>
+      <p>When I first encountered the LSTM diagram — the one with the forget gate, the input gate, the candidate gate, the output gate, the cell state threading through like a conveyor belt — I felt something I can only describe as <em>pre-emptive defeat</em>. Not confusion. Defeat. The kind you feel before you have even started.</p>
+      <p>I remember thinking: why does learning feel like being handed a circuit board and told to intuit electricity?</p>
+    </div>
+
+    <div class="meme-wrap">
+      <img src="/assets/img/logistic-regression/is-everything-a-camera.gif" alt="Is this a camera? Is everything a camera?" />
+      <p class="meme-caption">me, staring at an LSTM diagram for the first time</p>
+    </div>
+
+    <div class="prose">
+      <p>Over time, I noticed two patterns that make this field harder than it needs to be.</p>
+      <p><strong>The first is that papers are written to showcase novelty, not continuity.</strong> Every new architecture presents itself as a clean break from what came before. The connections are rarely highlighted — you are expected to hold all of deep learning in your head simultaneously and reconstruct the lineage yourself. The result is that each model feels like it fell from the sky, unrelated to anything you already know.</p>
+      <p><strong>The second is that scientists name things to emphasize difference, not similarity.</strong> Bahdanau's 2014 mechanism was essentially: "let the decoder search through all encoder hidden states at every step, instead of squeezing everything into one fixed vector." A natural name would have been <em>RNN search</em> — intuitive, grounded, connected to what came before. They called it <em>attention</em>. Elegant, yes. But it implies something mystical and separate, when it is really just a small, familiar network doing a familiar job in a slightly new place.</p>
+      <p>The field is like a Mandelbrot set. Each zoom reveals more complexity. Each paper adds a new layer. Progress is real and extraordinary — but nobody is required to make the whole thing learnable. The novelty incentive means researchers show what is <em>different</em>, never what is the <em>same</em>. The stack grows taller. The entry point gets higher. Eventually the foundations disappear into the cloud, and newcomers are handed a ladder that starts thirty floors up.</p>
+      <p>Someone has to look back. Someone has to squint and say: <em>wait — these are all the same thing, aren't they?</em></p>
+      <p>My observation is this: if you put every major deep learning model in an X-ray machine, you see the same skeleton. RNN, LSTM, GRU, Seq2Seq, Attention, Transformer — strip away the names, strip away the intimidating diagrams, and you find the same two moves repeated, recombined, stacked. It is not a coincidence. It is the blueprint. Everything else is variation.</p>
+    </div>
+
+    <div class="meme-wrap">
+      <img src="/assets/img/logistic-regression/they-are-the-same-picture.jpg" alt="They're the same picture" />
+      <p class="meme-caption">RNN vs LSTM vs GRU vs Transformer — corporate needs you to find the differences</p>
+    </div>
+
+    <div class="prose">
+      <p>This post builds from the ground up. We start from one equation — the simplest possible decision maker — and add <em>one clever trick at a time</em>. Each chapter is the previous chapter plus a single insight. By the end, the architecture behind GPT-4 will not look like magic. It will look like the logical next step.</p>
     </div>
 
     <div class="insight">
