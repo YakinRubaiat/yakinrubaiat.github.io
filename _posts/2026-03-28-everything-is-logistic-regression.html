@@ -387,6 +387,16 @@ categories: [Technical]
     color: var(--code-text);
     overflow-x: auto;
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .arch pre {
+    margin: 0;
+    padding: 0;
+    background: none;
+    font-size: inherit;
+    color: inherit;
+    line-height: inherit;
+    font-family: inherit;
     white-space: pre;
   }
 
@@ -665,9 +675,9 @@ categories: [Technical]
       <p>"Deep learning is not a new idea. It is logistic regression, applied to itself, repeatedly."</p>
     </div>
 
-    <div class="arch"><span class="c">Example: recognizing whether a sentence is positive or negative</span>
-
-Input:  "I love cats"
+    <div class="code-block">
+      <div class="code-label">Example: recognizing whether a sentence is positive or negative</div>
+      <pre>Input:  "I love cats"
   ↓  word embeddings  [0.2, 0.8, 0.1, ...]
 <span class="c">─────────────────────────────────────</span>
 <span class="y">Layer 1</span>  <span class="c">← learns basic word features</span>
@@ -682,7 +692,8 @@ Input:  "I love cats"
 <span class="c">─────────────────────────────────────</span>
 <span class="y">Layer 3</span>  <span class="c">← final decision</span>
   sigmoid(W3 · h2 + b3)
-  y = <span class="g">0.92</span>   <span class="c">← 92% positive! ✓</span></div>
+  y = <span class="g">0.92</span>   <span class="c">← 92% positive! ✓</span></pre>
+    </div>
 
     <div class="prose">
       <p>But wait — there is a problem. If every layer is just a linear transformation followed by sigmoid, what stops the whole stack from collapsing into one single layer? Mathematically, two linear transformations composed together are still just one linear transformation.</p>
@@ -779,14 +790,16 @@ h_t = tanh(<span class="b">W_x</span> · x_t  +  <span class="y">W_h · h_{t-1}<
       <p>The RNN processes one word at a time. At each step, it takes the current word embedding and the previous hidden state — the memory — and produces a new hidden state. That hidden state carries information about everything seen so far.</p>
     </div>
 
-    <div class="arch">
-"I"    → embedding → RNN → <span class="g">h1</span>   <span class="c">← knows "I"</span>
+    <div class="code-block">
+      <div class="code-label">RNN — Processing A Sequence</div>
+      <pre>"I"    → embedding → RNN → <span class="g">h1</span>   <span class="c">← knows "I"</span>
 "love" → embedding → RNN → <span class="g">h2</span>   <span class="c">← knows "I love"</span>
 "cats" → embedding → RNN → <span class="g">h3</span>   <span class="c">← knows "I love cats"</span>
 
 <span class="c">At each step:</span>
 <span class="y">h_t = tanh(W_x · x_t + W_h · h_{t-1} + b)</span>
-         <span class="c">↑ current word    ↑ memory</span></div>
+         <span class="c">↑ current word    ↑ memory</span></pre>
+    </div>
 
     <div class="pullquote">
       <p>"The hidden state is a fingerprint of meaning. Not the word itself — a compressed summary of everything seen so far."</p>
@@ -897,7 +910,9 @@ o = sigmoid(W_o · [h_{t-1}, x_t] + b_o)
       <p>The solution: two RNNs. One reads. One writes.</p>
     </div>
 
-    <div class="arch"><span class="c">ENCODER — reads everything, says nothing</span>
+    <div class="code-block">
+      <div class="code-label">Seq2Seq — Encoder / Decoder</div>
+      <pre><span class="c">ENCODER — reads everything, says nothing</span>
 
 "I"    → RNN → h1
 "love" → RNN → h2
@@ -910,7 +925,8 @@ o = sigmoid(W_o · [h_{t-1}, x_t] + b_o)
 h0_d + &lt;START&gt; → RNN → h1_d → <span class="y">"J'aime"</span>
 h1_d + "J'aime" → RNN → h2_d → <span class="y">"les"</span>
 h2_d + "les"    → RNN → h3_d → <span class="y">"chats"</span>
-h3_d + "chats"  → RNN → h4_d → <span class="y">&lt;END&gt;</span>   <span class="c">← model decides to stop</span></div>
+h3_d + "chats"  → RNN → h4_d → <span class="y">&lt;END&gt;</span>   <span class="c">← model decides to stop</span></pre>
+    </div>
 
     <div class="prose">
       <p>The encoder throws away all its outputs and keeps only the final hidden state. That one vector — called the context vector — must carry the meaning of the entire input sentence into the decoder.</p>
@@ -988,7 +1004,9 @@ h1_d = RNN(h0_d, &lt;START&gt;, <span class="g">c1</span>) → <span class="y">"
       <p>Training pushes the network so that similar meanings produce similar hidden states. Nobody explicitly tells the model that "love" and "aime" are related. It figures this out from thousands of examples of English-French pairs. The similarity is entirely learned.</p>
     </div>
 
-    <div class="arch"><span class="c">WITHOUT ATTENTION:           WITH ATTENTION:</span>
+    <div class="code-block">
+      <div class="code-label">Without Attention vs With Attention</div>
+      <pre><span class="c">WITHOUT ATTENTION:           WITH ATTENTION:</span>
 ────────────────────         ────────────────────
 Decoder sees only            Decoder sees ALL encoder
 c = h3_e (bottleneck!)       states at every step
@@ -997,7 +1015,8 @@ Context never changes.       Context computed fresh
                              at each step.
 
 Long sentences fail.         Long sentences work.
-Information lost.            Nothing forgotten.</div>
+Information lost.            Nothing forgotten.</pre>
+    </div>
 
     <div class="refrain">
       <p>"Still just logistic regression.<br><strong>Extra trick: a third LR that learns which input matters.</strong>"</p>
@@ -1115,9 +1134,9 @@ chats   [     0.3      0.3     0.4  ]
     <h2>Two Moves, Six Architectures</h2>
     <p class="chapter-tagline">Everything we built, everything we used</p>
 
-    <div class="arch"><span class="c">THE FAMILY TREE</span>
-
-<span class="y">Logistic Regression</span>
+    <div class="code-block">
+      <div class="code-label">The Family Tree</div>
+      <pre><span class="y">Logistic Regression</span>
   y = sigmoid(Wx + b)
   1 decision maker
   ↓ + memory
@@ -1146,7 +1165,8 @@ chats   [     0.3      0.3     0.4  ]
 <span class="y">Transformer (Vaswani 2017)</span>
   Pure attention, stacked deep
   every word attends to every word
-  parallel, scalable, no vanishing gradient</div>
+  parallel, scalable, no vanishing gradient</pre>
+    </div>
 
     <div class="code-block">
       <div class="code-label">The Two Moves — In Every Architecture</div>
