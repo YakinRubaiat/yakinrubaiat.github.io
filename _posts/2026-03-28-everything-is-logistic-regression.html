@@ -487,11 +487,12 @@ categories: [Technical]
     <h2>Chapters</h2>
     <ol>
       <li><a href="#ch1">The One Equation That Runs The World</a></li>
-      <li><a href="#ch2">Add Memory — The RNN</a></li>
-      <li><a href="#ch3">Fix The Memory — LSTM &amp; GRU</a></li>
-      <li><a href="#ch4">Two Networks Talking — Seq2Seq</a></li>
-      <li><a href="#ch5">Learn What Matters — Attention</a></li>
-      <li><a href="#ch6">Every Word Talks To Every Word — Transformer</a></li>
+      <li><a href="#ch2">Stack It Deep — Deep Learning</a></li>
+      <li><a href="#ch3">Add Memory — The RNN</a></li>
+      <li><a href="#ch4">Fix The Memory — LSTM &amp; GRU</a></li>
+      <li><a href="#ch5">Two Networks Talking — Seq2Seq</a></li>
+      <li><a href="#ch6">Learn What Matters — Attention</a></li>
+      <li><a href="#ch7">Every Word Talks To Every Word — Transformer</a></li>
     </ol>
   </nav>
 </div>
@@ -560,10 +561,140 @@ categories: [Technical]
   </section>
 </div>
 
-<!-- CHAPTER 2 -->
+<!-- CHAPTER 2 — DEEP LEARNING -->
 <div class="content">
   <section class="chapter" id="ch2">
     <span class="chapter-number">Chapter 02</span>
+    <h2>Stack It Deep</h2>
+    <p class="chapter-tagline">Deep Learning — logistic regression, layer by layer</p>
+
+    <div class="prose">
+      <p>One logistic regression makes one decision. It takes inputs, multiplies by weights, squashes through sigmoid. Done. But one decision is rarely enough. Real problems have layers of abstraction — raw pixels become edges, edges become shapes, shapes become faces. How do you build that?</p>
+      <p>You stack logistic regressions on top of each other. The output of one becomes the input of the next. That is deep learning. Nothing more.</p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label">From One Layer To Many</div>
+      <pre><span class="c">Single logistic regression:</span>
+<span class="g">y = sigmoid(W · x + b)</span>
+<span class="c">input → one decision</span>
+
+<span class="c">─────────────────────────────────────────────────</span>
+
+<span class="c">Two layers stacked:</span>
+<span class="y">h = sigmoid(W1 · x  + b1)</span>    <span class="c">← layer 1 output</span>
+<span class="g">y = sigmoid(W2 · h  + b2)</span>    <span class="c">← layer 2 takes layer 1 output</span>
+
+<span class="c">─────────────────────────────────────────────────</span>
+
+<span class="c">Three layers — a "deep" network:</span>
+<span class="y">h1 = sigmoid(W1 · x  + b1)</span>   <span class="c">← raw features</span>
+<span class="y">h2 = sigmoid(W2 · h1 + b2)</span>   <span class="c">← combinations of features</span>
+<span class="g">y  = sigmoid(W3 · h2 + b3)</span>   <span class="c">← final decision</span>
+
+<span class="c">Each layer is just: sigmoid(W · previous_output + b)</span>
+<span class="c">Same equation. New inputs. That is all.</span></pre>
+    </div>
+
+    <div class="prose">
+      <p>This is the entire secret of deep learning. Each layer transforms its input into a new representation — a new way of looking at the data. Early layers learn simple features. Later layers combine those features into increasingly abstract concepts. The model figures all of this out automatically through backpropagation.</p>
+    </div>
+
+    <div class="pullquote">
+      <p>"Deep learning is not a new idea. It is logistic regression, applied to itself, repeatedly."</p>
+    </div>
+
+    <div class="arch"><span class="c">Example: recognizing whether a sentence is positive or negative</span>
+
+Input:  "I love cats"
+  ↓  word embeddings  [0.2, 0.8, 0.1, ...]
+<span class="c">─────────────────────────────────────</span>
+<span class="y">Layer 1</span>  <span class="c">← learns basic word features</span>
+  sigmoid(W1 · embeddings + b1)
+  h1 = [0.7, 0.2, 0.9, ...]
+  <span class="c">"detects: positive word present"</span>
+<span class="c">─────────────────────────────────────</span>
+<span class="y">Layer 2</span>  <span class="c">← combines features</span>
+  sigmoid(W2 · h1 + b2)
+  h2 = [0.1, 0.8, 0.3, ...]
+  <span class="c">"detects: positive + subject present"</span>
+<span class="c">─────────────────────────────────────</span>
+<span class="y">Layer 3</span>  <span class="c">← final decision</span>
+  sigmoid(W3 · h2 + b3)
+  y = <span class="g">0.92</span>   <span class="c">← 92% positive! ✓</span></div>
+
+    <div class="prose">
+      <p>But wait — there is a problem. If every layer is just a linear transformation followed by sigmoid, what stops the whole stack from collapsing into one single layer? Mathematically, two linear transformations composed together are still just one linear transformation.</p>
+      <p>The sigmoid is what saves us. It introduces nonlinearity — a bend in the function. After each linear step, sigmoid bends the output. The next layer then works with bent data. Stack enough bends and you can approximate any function in the universe. This is the Universal Approximation Theorem.</p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label">Why Nonlinearity Matters</div>
+      <pre><span class="c">WITHOUT nonlinearity:</span>
+h = W2 · (W1 · x + b1) + b2
+  = (W2·W1) · x + (W2·b1 + b2)
+  = <span class="r">W_combined · x + b_combined</span>
+<span class="c">Two layers = one layer. Stacking does nothing!</span>
+
+<span class="c">─────────────────────────────────────────────────</span>
+
+<span class="c">WITH nonlinearity (sigmoid or ReLU):</span>
+h = <span class="y">sigmoid</span>(W1 · x + b1)
+y = <span class="y">sigmoid</span>(W2 · h + b2)
+<span class="c">Now you CANNOT collapse this into one layer.</span>
+<span class="c">The bend introduced by sigmoid breaks the linearity.</span>
+<span class="c">Each layer genuinely adds new representational power.</span>
+
+<span class="c">─────────────────────────────────────────────────</span>
+
+<span class="c">In practice, ReLU is used more than sigmoid in hidden layers:</span>
+<span class="g">ReLU(z) = max(0, z)</span>   <span class="c">← same idea, faster to compute</span>
+<span class="c">sigmoid still used at output for probabilities</span></pre>
+    </div>
+
+    <div class="prose">
+      <p>Training a deep network works the same way as training a single logistic regression — just with more bookkeeping. You make a prediction with a forward pass through all layers, compute the loss, then backpropagate the error signal backwards through every layer, adjusting every weight matrix along the way.</p>
+      <p>The chain rule of calculus handles the bookkeeping automatically. Each layer's gradient is computed from the layer above it. Frameworks like PyTorch do all of this for you.</p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-label">Backprop Through Layers — Chain Rule</div>
+      <pre><span class="c">Forward pass:</span>
+x → <span class="y">Layer1</span> → h1 → <span class="y">Layer2</span> → h2 → <span class="y">Layer3</span> → y → Loss
+
+<span class="c">Backward pass (chain rule):</span>
+dLoss/dW3 = dLoss/dy  · dy/dW3               <span class="c">← easy, close to loss</span>
+dLoss/dW2 = dLoss/dy  · dy/dh2  · dh2/dW2   <span class="c">← one step further</span>
+dLoss/dW1 = dLoss/dy  · dy/dh2  · dh2/dh1 · dh1/dW1  <span class="c">← deepest</span>
+
+<span class="c">Each weight matrix gets its own gradient.</span>
+<span class="c">Each gradient tells us: how much did this layer's</span>
+<span class="c">weights contribute to the final mistake?</span>
+
+<span class="c">Update each weight:</span>
+<span class="g">W = W - learning_rate × dLoss/dW</span></pre>
+    </div>
+
+    <div class="insight">
+      <span class="insight-label">What Each Layer Actually Learns</span>
+      <p>Nobody tells the layers what to learn. Layer 1 might learn to detect individual word sentiment. Layer 2 might learn to detect negation ("not good"). Layer 3 might learn to combine everything into a final judgment. <strong>The structure emerges from training alone.</strong> You set up the architecture. Backprop figures out what each layer should do.</p>
+    </div>
+
+    <div class="prose">
+      <p>This is why the field is called deep learning — depth refers to the number of layers. A shallow network has one or two. A deep network has many. GPT-3 has 96 layers. Each one is the same pattern: linear transformation, nonlinearity, pass to next layer.</p>
+      <p>The naming changes. The architectures look different. But underneath every layer of every deep learning model, you will always find the same thing: a weight matrix, a bias, an activation function. Logistic regression in a new coat.</p>
+    </div>
+
+    <div class="refrain">
+      <p>"Still just logistic regression.<br><strong>Extra trick: apply it to itself, layer by layer.</strong>"</p>
+    </div>
+  </section>
+</div>
+
+<!-- CHAPTER 3 — old ch2 RNN -->
+<div class="content">
+  <section class="chapter" id="ch3">
+    <span class="chapter-number">Chapter 03</span>
     <h2>Add Memory</h2>
     <p class="chapter-tagline">The Recurrent Neural Network — logistic regression that remembers</p>
 
@@ -625,10 +756,10 @@ dL/dW_early = dL/dh_n × dh_n/dh_{n-1} × ... × dh_2/dh_1
   </section>
 </div>
 
-<!-- CHAPTER 3 -->
+<!-- CHAPTER 4 -->
 <div class="content">
-  <section class="chapter" id="ch3">
-    <span class="chapter-number">Chapter 03</span>
+  <section class="chapter" id="ch4">
+    <span class="chapter-number">Chapter 04</span>
     <h2>Fix The Memory</h2>
     <p class="chapter-tagline">LSTM &amp; GRU — four logistic regressions with different jobs</p>
 
@@ -693,10 +824,10 @@ o = sigmoid(W_o · [h_{t-1}, x_t] + b_o)
   </section>
 </div>
 
-<!-- CHAPTER 4 -->
+<!-- CHAPTER 5 -->
 <div class="content">
-  <section class="chapter" id="ch4">
-    <span class="chapter-number">Chapter 04</span>
+  <section class="chapter" id="ch5">
+    <span class="chapter-number">Chapter 05</span>
     <h2>Two Networks Talking</h2>
     <p class="chapter-tagline">Seq2Seq — variable-length input, variable-length output</p>
 
@@ -735,10 +866,10 @@ h3_d + "chats"  → RNN → h4_d → <span class="y">&lt;END&gt;</span>   <span 
   </section>
 </div>
 
-<!-- CHAPTER 5 -->
+<!-- CHAPTER 6 -->
 <div class="content">
-  <section class="chapter" id="ch5">
-    <span class="chapter-number">Chapter 05</span>
+  <section class="chapter" id="ch6">
+    <span class="chapter-number">Chapter 06</span>
     <h2>Learn What Matters</h2>
     <p class="chapter-tagline">Attention — a third logistic regression that learns importance</p>
 
@@ -813,10 +944,10 @@ Information lost.            Nothing forgotten.</div>
   </section>
 </div>
 
-<!-- CHAPTER 6 -->
+<!-- CHAPTER 7 -->
 <div class="content">
-  <section class="chapter" id="ch6">
-    <span class="chapter-number">Chapter 06</span>
+  <section class="chapter" id="ch7">
+    <span class="chapter-number">Chapter 07</span>
     <h2>Every Word Talks To Every Word</h2>
     <p class="chapter-tagline">The Transformer — throw away the RNN, keep the attention</p>
 
