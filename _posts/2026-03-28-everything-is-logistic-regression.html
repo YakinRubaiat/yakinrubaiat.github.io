@@ -445,29 +445,6 @@ categories: [Technical]
 
   .comp-box.highlight h4 { color: #c9922a !important; }
 
-  /* FOOTER */
-  footer {
-    background: #0f0e0a !important;
-    color: #f5f0e8 !important;
-    text-align: center;
-    padding: 4rem 2rem;
-  }
-
-  footer h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
-    font-style: italic;
-    margin-bottom: 1rem;
-    color: #f5f0e8 !important;
-  }
-
-  footer p {
-    color: rgba(245,240,232,0.5) !important;
-    font-size: 0.9rem;
-    max-width: 500px;
-    margin: 0 auto;
-  }
-
   /* ANIMATIONS */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -1192,12 +1169,14 @@ Feedforward         = LR transforming individual words
   </section>
 </div>
 
-<!-- FOOTER -->
-<footer>
-  <h2>Everything is logistic regression &amp; some extra.</h2>
-  <p style="margin-top:1.5rem;">From one sigmoid to the architecture behind GPT — the same two moves, applied cleverly, stacked deep.</p>
-  <p style="margin-top:3rem; font-size:0.8rem; opacity:0.3;">y = sigmoid(W·x + b)</p>
-</footer>
+<!-- CLOSING -->
+<div class="content">
+  <div style="text-align:center; padding: 3rem 0 2rem; border-top: 2px solid var(--paper-dark);">
+    <p style="font-family:'Playfair Display',serif; font-size:1.6rem; font-style:italic; color:var(--ink);">Everything is logistic regression &amp; some extra.</p>
+    <p style="margin-top:1rem; font-family:'Lora',serif; font-size:0.95rem; color:var(--muted);">From one sigmoid to the architecture behind GPT — the same two moves, applied cleverly, stacked deep.</p>
+    <p style="margin-top:1.5rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--muted); opacity:0.5;">y = sigmoid(W·x + b)</p>
+  </div>
+</div>
 
 <script>
   // Intersection observer for chapter animations
