@@ -233,7 +233,62 @@ les     [     0.4      0.4   <span class="r"> -inf</span> ]
 chats   [     0.3      0.3     0.4  ]
 
 <span class="c">After softmax: e^(-inf) = 0 → exact zero attention</span>
-<span class="c">Future is invisible. Model must actually predict.</span></pre> </div> <div class="insight"> <span class="insight-label">The Full Story In One Place</span> <p>The transformer has three types of attention. <strong>Encoder self-attention</strong>: every input word understands every other input word. <strong>Decoder masked self-attention</strong>: every output word sees only previous output words. <strong>Cross-attention</strong>: output words look at input words — this is Bahdanau's 2014 idea, preserved inside the transformer.</p> </div> <div class="refrain"> <p>"Still just logistic regression.<br><strong>Extra trick: throw away the RNN. Let every word talk to every word directly. Stack it deep.</strong>"</p> </div> </section> </div> <div class="content"> <section class="chapter" id="summary"> <span class="chapter-number">The Full Journey</span> <h2>Two Moves, Six Architectures</h2> <p class="chapter-tagline">Everything we built, everything we used</p> <div class="code-block"> <div class="code-label">The Family Tree</div> <pre><span class="y">Logistic Regression</span>
+<span class="c">Future is invisible. Model must actually predict.</span></pre> </div> <div class="code-block"> <div class="code-label">Full Transformer Architecture</div> <pre><span class="c">ENCODER SIDE:</span>
+<span class="c">─────────────</span>
+Input words
+    ↓
+Word Embeddings
+    ↓
++ Positional Encoding
+    ↓
+<span class="y">┌─────────────────────┐</span>
+<span class="y">│  Self Attention      │</span>  <span class="c">← every word sees every word</span>
+<span class="y">│  Add &amp; Normalize     │</span>  <span class="c">← residual connection</span>
+<span class="y">│  Feedforward         │</span>  <span class="c">← individual transformation</span>
+<span class="y">│  Add &amp; Normalize     │</span>  <span class="c">← residual connection</span>
+<span class="y">└─────────────────────┘</span>
+    ↓ (repeat N times)
+<span class="g">Rich word representations</span>
+
+
+<span class="c">DECODER SIDE:</span>
+<span class="c">─────────────</span>
+Output words so far
+    ↓
+Word Embeddings
+    ↓
++ Positional Encoding
+    ↓
+<span class="b">┌──────────────────────────┐</span>
+<span class="b">│  Masked Self Attention    │</span>  <span class="c">← can only see past words!</span>
+<span class="b">│  Add &amp; Normalize          │</span>
+<span class="b">│  Cross Attention          │</span>  <span class="c">← looks at encoder output!</span>
+<span class="b">│  Add &amp; Normalize          │</span>
+<span class="b">│  Feedforward              │</span>
+<span class="b">│  Add &amp; Normalize          │</span>
+<span class="b">└──────────────────────────┘</span>
+    ↓ (repeat N times)
+    ↓
+Linear + Softmax
+    ↓
+<span class="g">Next word prediction</span></pre> </div> <div class="code-block"> <div class="code-label">Three Types of Attention in the Transformer</div> <pre><span class="y">1. ENCODER SELF-ATTENTION</span>
+   every English word looks at every other English word
+   <span class="c">"understand the full input before doing anything"</span>
+
+<span class="c">─────────────────────────────────────────────────</span>
+
+<span class="b">2. DECODER MASKED SELF-ATTENTION</span>
+   every output word looks at previous output words only
+   future words are hidden — set to <span class="r">-infinity</span> before softmax
+   <span class="c">"understand what I have generated so far"</span>
+
+<span class="c">─────────────────────────────────────────────────</span>
+
+<span class="g">3. CROSS-ATTENTION</span>
+   decoder words look at encoder words
+   Q comes from decoder, K and V come from encoder
+   <span class="c">THIS is Bahdanau's 2014 idea — preserved inside the transformer</span>
+   <span class="c">"connect what I'm generating to what was said"</span></pre> </div> <div class="insight"> <span class="insight-label">The Full Story In One Place</span> <p>Three attention types. One principle. The encoder understands the input. The decoder generates the output without cheating. Cross-attention bridges them — <strong>the same idea Bahdanau had in 2014</strong>, living inside every transformer ever built.</p> </div> <div class="refrain"> <p>"Still just logistic regression.<br><strong>Extra trick: throw away the RNN. Let every word talk to every word directly. Stack it deep.</strong>"</p> </div> </section> </div> <div class="content"> <section class="chapter" id="summary"> <span class="chapter-number">The Full Journey</span> <h2>Two Moves, Six Architectures</h2> <p class="chapter-tagline">Everything we built, everything we used</p> <div class="code-block"> <div class="code-label">The Family Tree</div> <pre><span class="y">Logistic Regression</span>
   y = sigmoid(Wx + b)
   1 decision maker
   ↓ + memory
