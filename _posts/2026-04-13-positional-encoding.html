@@ -1,0 +1,980 @@
+---
+layout: post
+title: "Chapter 8 — Where Am I? Positional Encoding"
+date: 2026-04-13
+description: The Transformer forgets word order entirely — here's how four architectures fix that, from sine waves to the rotation trick behind every modern LLM.
+tags: [AI, deep-learning, machine-learning, transformers]
+categories: [Technical]
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 8 — Where Am I? Positional Encoding</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=JetBrains+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root {
+  --ink: #0f0e0a;
+  --paper: #f5f0e8;
+  --paper-dark: #ede7d5;
+  --accent: #c0392b;
+  --gold: #c9922a;
+  --muted: #7a7060;
+  --code-bg: #1a1814;
+  --code-text: #e8dfc8;
+  --code-green: #7ec8a0;
+  --code-yellow: #f0c060;
+  --code-blue: #80b8d8;
+  --code-comment: #8a8070;
+  --sin-color: #185FA5;
+  --rope-color: #854F0B;
+  --learn-color: #27500A;
+  --rel-color: #3C3489;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.8;
+  overflow-x: hidden;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 6rem 2rem 4rem;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,0.04) 39px, rgba(0,0,0,0.04) 40px);
+  pointer-events: none;
+}
+.chapter-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  max-width: 800px;
+  margin-bottom: 1rem;
+}
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero-sub {
+  font-family: 'Lora', serif;
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 500px;
+  margin-bottom: 2rem;
+}
+.hero-equation {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  background: var(--code-bg);
+  color: var(--code-yellow);
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+/* ── CONTENT ── */
+.content { max-width: 720px; margin: 0 auto; padding: 0 2rem; }
+
+.prose { margin: 1.5rem 0; }
+.prose p { margin-bottom: 1.2rem; }
+.prose p:last-child { margin-bottom: 0; }
+
+h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  margin: 3rem 0 0.5rem;
+  line-height: 1.2;
+}
+h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 2rem 0 0.5rem;
+  color: var(--ink);
+}
+
+.section-divider {
+  text-align: center;
+  margin: 3rem 0 2rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+}
+.section-divider::before, .section-divider::after {
+  content: ' ── ';
+}
+
+/* ── INSIGHT BOX ── */
+.insight {
+  background: var(--paper-dark);
+  border-left: 3px solid var(--accent);
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.insight-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.insight p { margin: 0; font-size: 0.95rem; }
+
+/* ── CODE ── */
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 1.5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+.kw { color: var(--code-blue); }
+.cm { color: var(--code-comment); font-style: italic; }
+.str { color: var(--code-green); }
+.num { color: var(--code-yellow); }
+.fn { color: #d4a0d4; }
+
+/* ── REFRAIN ── */
+.refrain {
+  text-align: center;
+  margin: 3rem 0;
+  padding: 2rem;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.refrain p {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--muted);
+  margin: 0.3rem 0;
+}
+.refrain .extra {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-top: 0.75rem;
+  letter-spacing: 0.05em;
+  font-style: normal;
+}
+
+/* ── SIMULATION PANELS ── */
+.sim-panel {
+  background: #faf7f2;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
+.sim-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sim-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+}
+.slider-wrap { display: flex; align-items: center; gap: 12px; margin: 0.75rem 0; font-size: 14px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.slider-wrap input[type=range] { flex: 1; accent-color: var(--accent); }
+.slider-val { font-weight: 500; color: var(--ink); min-width: 32px; }
+.token-strip { display: flex; gap: 8px; flex-wrap: wrap; margin: 0.75rem 0; }
+.tok { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.tok-word { padding: 5px 12px; border-radius: 4px; font-size: 13px; font-weight: 500; border: 1px solid rgba(0,0,0,0.12); font-family: 'JetBrains Mono', monospace; background: white; color: var(--ink); }
+.tok-word.active-tok { background: #fdf3dc; border-color: var(--gold); color: #7a5000; }
+.tok-lbl { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.vec-strip { display: flex; gap: 3px; margin: 0.5rem 0; }
+.vc { width: 44px; height: 40px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 500; border: 1px solid transparent; }
+.dim-lbl { width: 44px; font-size: 10px; color: var(--muted); text-align: center; font-family: 'JetBrains Mono', monospace; }
+.note-sm { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0.5rem 0; font-family: 'Lora', serif; }
+.code-inline { font-family: 'JetBrains Mono', monospace; background: var(--paper-dark); padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0.75rem 0; }
+.sim-btn { padding: 5px 14px; border: 1px solid rgba(0,0,0,0.15); border-radius: 4px; background: white; font-family: 'JetBrains Mono', monospace; font-size: 12px; cursor: pointer; color: var(--ink); transition: all 0.15s; }
+.sim-btn:hover { background: var(--paper-dark); }
+.sim-btn.active-btn { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.mono-box { background: var(--code-bg); color: var(--code-text); border-radius: 4px; padding: 0.75rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; margin: 0.6rem 0; }
+.alert-good { background: #edf7ed; border-left: 3px solid #3a7d3a; padding: 0.75rem 1rem; border-radius: 0 4px 4px 0; margin: 0.75rem 0; font-size: 13px; color: #2a5a2a; line-height: 1.6; }
+.alert-bad { background: #fdecea; border-left: 3px solid #c0392b; padding: 0.75rem 1rem; border-radius: 0 4px 4px 0; margin: 0.75rem 0; font-size: 13px; color: #7a1f1f; line-height: 1.6; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0.75rem 0; }
+.method-box { border-radius: 4px; padding: 0.85rem 1rem; }
+.method-box .mh { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+.method-box .mb { font-size: 12px; line-height: 1.6; }
+.endings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 2rem 0; }
+.ending-card { background: white; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; padding: 1.25rem; cursor: pointer; transition: all 0.2s; }
+.ending-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.ending-card.selected { border-color: var(--accent); border-width: 2px; }
+.ending-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+.ending-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; }
+.ending-preview { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.ending-content { display: none; }
+.ending-content.show { display: block; }
+.big-ending { text-align: center; margin: 3rem 0 2rem; }
+.big-ending h2 { font-family: 'Playfair Display', serif; font-size: 2rem; font-style: italic; margin-bottom: 1rem; }
+.big-ending p { color: var(--muted); font-size: 1rem; max-width: 480px; margin: 0 auto 1rem; }
+.score-display { font-size: 22px; font-weight: 500; font-family: 'JetBrains Mono', monospace; padding: 0.5rem; border-radius: 4px; text-align: center; margin: 0.5rem 0; }
+.mat-wrap { overflow-x: auto; margin: 0.75rem 0; }
+table.mat { border-collapse: collapse; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+table.mat td, table.mat th { padding: 5px 10px; border: 1px solid rgba(0,0,0,0.08); text-align: center; }
+table.mat th { background: var(--paper-dark); font-weight: 500; color: var(--muted); font-size: 11px; }
+.hilite { background: #fdf3dc; color: #7a5000; font-weight: 500; }
+.diff { background: #edf7ed; color: #2a5a2a; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 5rem 2rem;
+  margin-top: 5rem;
+  border-top: 1px solid rgba(0,0,0,0.08);
+}
+footer h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+footer .next-chapter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+/* ANIMATIONS */
+.chapter-body { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.chapter-body.visible { opacity: 1; transform: none; }
+
+@media (max-width: 600px) {
+  .two-col, .endings-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="chapter-label">Chapter 08 · Everything is Logistic Regression (And Some Extra)</span>
+  <h1>Where Am I? <em>Positional Encoding</em></h1>
+  <p class="hero-sub">The attention mechanism has no idea what order your words are in. Let's fix that.</p>
+  <div class="hero-equation">input = word_vector + position_vector</div>
+</section>
+
+<!-- BODY -->
+<div class="content">
+<div class="chapter-body" id="main-body">
+
+<!-- THE PROBLEM -->
+<div class="prose" style="margin-top:3rem">
+  <p>By now we have built up quite a machine. Logistic regression. Stacked into deep networks. Rolled through time as an RNN. Given a second brain as seq2seq. Taught to focus with attention. And finally, in the last chapter, we stripped out the recurrence entirely and let every word talk to every other word at once — the Transformer.</p>
+
+  <p>But the Transformer has a dirty secret. One thing it completely forgot to include.</p>
+
+  <p><em>Position.</em></p>
+</div>
+
+<div class="section-divider">the problem</div>
+
+<h2>The model that forgot to count</h2>
+
+<div class="prose">
+  <p>Go back to the attention formula. For each pair of tokens, we compute a score:</p>
+</div>
+
+<pre><span class="cm"># attention score between token i and token j</span>
+score(i, j) = <span class="fn">dot</span>(W_Q · x_i, W_K · x_j) / <span class="fn">sqrt</span>(d)
+
+<span class="cm"># notice what is NOT here: no position index, no i, no j in the formula</span>
+<span class="cm"># the formula only sees the CONTENT of the tokens, never their location</span></pre>
+
+<div class="prose">
+  <p>The dot product sees only the content of each token. Swap all the tokens around — the same dot products come out, just in a different order. The model is, mathematically, a <strong>bag of words</strong>.</p>
+</div>
+
+<!-- SIMULATION 1: THE PROBLEM -->
+<div class="sim-panel">
+  <div class="sim-title"><span class="sim-dot"></span> simulation — the bag of words problem</div>
+  <p class="note-sm">These two sentences have completely different meanings. But the attention formula produces the same scores for both — it cannot tell the difference.</p>
+  <div class="btn-row">
+    <button class="sim-btn active-btn" id="sent-a-btn" onclick="setSentence('a')">Sentence A</button>
+    <button class="sim-btn" id="sent-b-btn" onclick="setSentence('b')">Sentence B</button>
+  </div>
+  <div class="token-strip" id="bag-tokens"></div>
+  <div class="mono-box" id="bag-output"></div>
+  <p class="note-sm" id="bag-note" style="color:#c0392b"></p>
+</div>
+
+<div class="insight">
+  <span class="insight-label">The problem in one sentence</span>
+  <p>"The cat ate the mouse" and "The mouse ate the cat" — same words, same vectors, same attention scores. The model cannot tell them apart.</p>
+</div>
+
+<!-- THE FIX -->
+<div class="section-divider">the fix</div>
+
+<h2>Add a position fingerprint to every word</h2>
+
+<div class="prose">
+  <p>The fix is simple. Before attention runs, we give each word a second vector that encodes only its position — and we add it to the word vector. Now word number 1 has a different total vector than word number 4, even if they are the same word.</p>
+</div>
+
+<pre><span class="cm"># The complete idea in one line</span>
+model_input[i] = word_vector[i] + position_vector[i]
+
+<span class="cm"># word_vector: encodes MEANING (what the word is)</span>
+<span class="cm"># position_vector: encodes LOCATION (where the word sits)</span>
+<span class="cm"># together: the model sees both</span></pre>
+
+<!-- SIMULATION 2: THE FIX -->
+<div class="sim-panel">
+  <div class="sim-title"><span class="sim-dot"></span> simulation — adding a position vector</div>
+  <p class="note-sm">Pick a position. See its word vector, position vector, and the combined input the model actually receives.</p>
+  <div class="slider-wrap">
+    <span>position</span>
+    <input type="range" id="pos-pick" min="0" max="5" value="1" step="1" oninput="updateAddDemo()">
+    <span class="slider-val" id="pos-pick-v">1</span>
+  </div>
+  <div class="token-strip" id="add-tokens"></div>
+  <p class="note-sm" style="margin-top:0.5rem">Dimension labels:</p>
+  <div class="vec-strip" id="add-dim-lbls"></div>
+  <p class="note-sm">Word vector (the word's meaning):</p>
+  <div class="vec-strip" id="add-wvec"></div>
+  <p class="note-sm" style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:14px;margin:0.25rem 0">+</p>
+  <p class="note-sm">Position vector (just the position):</p>
+  <div class="vec-strip" id="add-pvec"></div>
+  <p class="note-sm" style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:14px;margin:0.25rem 0">=</p>
+  <p class="note-sm">Final input to model:</p>
+  <div class="vec-strip" id="add-fvec"></div>
+</div>
+
+<div class="prose">
+  <p>Now the question becomes: <em>what exactly do we put in the position vector?</em> This is where things get interesting. There are four main answers, and each one is a different architectural choice made by a real system you use every day.</p>
+</div>
+
+<!-- THE FOUR METHODS -->
+<div class="section-divider">four answers to the same question</div>
+
+<h2>Method 1 — Sinusoidal encoding</h2>
+<p style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted);margin-bottom:1rem;">used in: original Transformer (Vaswani 2017)</p>
+
+<div class="prose">
+  <p>The original Transformer's answer: use a formula based on sine and cosine waves. Pair each dimension with a wave running at a different frequency — some fast, some very slow. Together they give every position a unique fingerprint, like hour and minute hands on a clock.</p>
+</div>
+
+<pre><span class="cm"># The formula (d_model = 4, so 2 pairs)</span>
+PE(pos, dim 0) = <span class="fn">sin</span>(pos / 1)       <span class="cm"># fast clock</span>
+PE(pos, dim 1) = <span class="fn">cos</span>(pos / 1)       <span class="cm"># fast clock, shifted 90°</span>
+PE(pos, dim 2) = <span class="fn">sin</span>(pos / 100)     <span class="cm"># slow clock</span>
+PE(pos, dim 3) = <span class="fn">cos</span>(pos / 100)     <span class="cm"># slow clock, shifted 90°</span>
+
+<span class="cm"># Always between -1 and +1. Works for any position. No training needed.</span></pre>
+
+<!-- SIMULATION 3: SINUSOIDAL -->
+<div class="sim-panel">
+  <div class="sim-title"><span class="sim-dot"></span> simulation — sinusoidal position vectors</div>
+  <p class="note-sm">Drag the slider. Watch how the four numbers change. The fast dimensions (0,1) cycle quickly; the slow dimensions (2,3) barely move.</p>
+  <div class="slider-wrap">
+    <span>position</span>
+    <input type="range" id="sin-pos" min="0" max="20" value="0" step="1" oninput="updateSin()">
+    <span class="slider-val" id="sin-pos-v">0</span>
+  </div>
+  <div class="vec-strip" id="sin-dim-lbls"></div>
+  <div class="vec-strip" id="sin-vec"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0.75rem" id="sin-cards"></div>
+  <p class="note-sm" style="margin-top:0.5rem">Notice: every position produces a unique combination. No two positions ever have identical 4-number fingerprints.</p>
+</div>
+
+<h2>Method 2 — Learned encoding</h2>
+<p style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted);margin-bottom:1rem;">used in: BERT, GPT-2</p>
+
+<div class="prose">
+  <p>BERT and GPT-2 said: forget the formula. Just create a lookup table — one row per position — and let backpropagation figure out the best values during training. Same mechanism as a word embedding table, but indexed by position instead of word.</p>
+</div>
+
+<pre><span class="cm"># In PyTorch — this is literally all it is</span>
+position_embedding = nn.<span class="fn">Embedding</span>(max_positions, d_model)
+
+<span class="cm"># At forward pass:</span>
+pos_vector = position_embedding[<span class="num">3</span>]  <span class="cm"># look up row 3 for position 3</span>
+
+<span class="cm"># These values start random and get updated by backprop</span>
+<span class="cm"># just like any other weight in the network</span></pre>
+
+<!-- SIMULATION 4: LEARNED -->
+<div class="sim-panel">
+  <div class="sim-title"><span class="sim-dot"></span> simulation — learned position table</div>
+  <p class="note-sm">The table below shows what a learned position table might look like after training. Click any row to highlight it and see that row's position vector get added to the word.</p>
+  <div class="mat-wrap"><table class="mat" id="learned-table"></table></div>
+  <div class="slider-wrap" style="margin-top:0.75rem">
+    <span>select position</span>
+    <input type="range" id="lrn-pos" min="0" max="5" value="2" step="1" oninput="updateLearned()">
+    <span class="slider-val" id="lrn-pos-v">2</span>
+  </div>
+  <p class="note-sm">Position vector for position <span id="lrn-pname" style="font-weight:500">2</span>:</p>
+  <div class="vec-strip" id="lrn-vec"></div>
+  <div class="alert-bad" style="margin-top:0.75rem"><strong>The one weakness:</strong> the table has a fixed number of rows — the maximum sequence length from training. Feed the model a longer sequence and position 7 has no row. The model has never seen it and has no vector to look up.</div>
+  <div class="alert-good"><strong>Why sinusoidal wins here:</strong> the formula works for any position number, even ones never seen during training.</div>
+</div>
+
+<h2>Method 3 — Relative encoding</h2>
+<p style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted);margin-bottom:1rem;">used in: T5, DeBERTa</p>
+
+<div class="prose">
+  <p>Sinusoidal and learned PE both tell each word "you are at position 5." Relative PE changes the question entirely: instead of absolute location, it tells each pair of words "you are 4 steps apart."</p>
+  <p>Grammatically this makes more sense. An adjective modifying a noun next to it is the same pattern whether it is at position 3 or position 412. What matters is adjacency, not coordinates.</p>
+</div>
+
+<pre><span class="cm"># Instead of adding PE to the word vector...</span>
+<span class="cm"># ...add a bias directly to the attention score</span>
+
+score(i, j) = <span class="fn">dot</span>(q_i, k_j) + Bias[j - i]
+
+<span class="cm"># Bias is a learned table indexed by relative distance</span>
+<span class="cm"># Bias[+1] = adjacent right, Bias[-1] = adjacent left</span>
+<span class="cm"># Bias[+4] = four steps to the right, etc.</span></pre>
+
+<!-- SIMULATION 5: RELATIVE -->
+<div class="sim-panel">
+  <div class="sim-title"><span class="sim-dot"></span> simulation — relative distances</div>
+  <p class="note-sm">Click any word as the query. The table shows the distance from it to every other word. The score for each pair is the dot product plus the bias for that distance.</p>
+  <div class="token-strip" id="rel-tokens"></div>
+  <p style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:0.5rem">↑ click to change query (highlighted in gold)</p>
+  <div class="mat-wrap"><table class="mat" id="rel-matrix"></table></div>
+  <div class="mono-box" id="rel-formula"></div>
+  <div class="alert-bad"><strong>The cost:</strong> the model needs one bias value per (query, key) pair — that is N×N pairs for a sentence of length N. For very long texts this becomes expensive.</div>
+</div>
+
+<h2>Method 4 — RoPE</h2>
+<p style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted);margin-bottom:1rem;">used in: LLaMA, Mistral, Gemma, Qwen — the current standard</p>
+
+<div class="prose">
+  <p>RoPE is the elegant one. Instead of adding position information, it <em>rotates</em> each word's query and key vectors by an angle proportional to position. Then something beautiful happens in the math of the dot product.</p>
+</div>
+
+<pre><span class="cm"># Rotate query and key before computing attention score</span>
+q_m = <span class="fn">rotate</span>(q, angle = m × speed)
+k_n = <span class="fn">rotate</span>(k, angle = n × speed)
+
+<span class="cm"># Dot product of two rotated vectors:</span>
+<span class="fn">dot</span>(q_m, k_n) = <span class="fn">dot</span>(q, k) × <span class="fn">cos</span>((n - m) × speed)
+<span class="cm">#                              ↑ only the GAP (n-m) survives!</span>
+<span class="cm"># absolute positions m and n cancel out mathematically</span></pre>
+
+<!-- SIMULATION 6: ROPE -->
+<div class="sim-panel">
+  <div class="sim-title"><span class="sim-dot"></span> simulation — RoPE: only the gap matters</div>
+  <p class="note-sm">Set a query position and a key position. The score depends only on the gap between them — not their absolute values. Keep the gap the same and move both sliders: the score does not change.</p>
+  <div class="slider-wrap">
+    <span>query pos (m)</span>
+    <input type="range" id="rope-m" min="0" max="8" value="1" step="1" oninput="updateRope()">
+    <span class="slider-val" id="rope-m-v">1</span>
+  </div>
+  <div class="slider-wrap">
+    <span>key pos (n)</span>
+    <input type="range" id="rope-n" min="0" max="8" value="4" step="1" oninput="updateRope()">
+    <span class="slider-val" id="rope-n-v">4</span>
+  </div>
+  <canvas id="rope-canvas" height="160" style="width:100%;display:block;margin:0.5rem 0;border-radius:4px"></canvas>
+  <div class="mono-box" id="rope-box"></div>
+  <div class="two-col" style="margin-top:0.75rem">
+    <div class="method-box" style="background:#E6F1FB;border:1px solid #B5D4F4">
+      <div class="mh" style="color:#0C447C">vs Sinusoidal</div>
+      <div class="mb" style="color:#185FA5">Sinusoidal adds position to the word vector. The dot product still sees absolute positions mixed in. RoPE's rotation makes distance fall out exactly.</div>
+    </div>
+    <div class="method-box" style="background:#FAEEDA;border:1px solid #FAC775">
+      <div class="mh" style="color:#633806">vs Relative PE</div>
+      <div class="mb" style="color:#854F0B">Relative PE needs an N×N bias table. RoPE just rotates each token once — no extra memory, no extra matrix.</div>
+    </div>
+  </div>
+</div>
+
+<!-- THE REFRAIN -->
+<div class="section-divider">the pattern</div>
+
+<div class="insight">
+  <span class="insight-label">The unifying insight</span>
+  <p>All four methods do the same thing: give each position a unique vector and inject it into the token representation, so attention scores can become position-aware. The difference is only in <em>where</em> the position is injected and <em>whether the dot product sees absolute positions or relative distances</em>. RoPE wins because it guarantees relative distances fall out of the math, not as an approximation, but exactly.</p>
+</div>
+
+<div class="refrain">
+  <p>Still just logistic regression computing attention scores.</p>
+  <p>Still just a weighted average combining information.</p>
+  <div class="extra">Extra trick: add a position fingerprint before anything runs.</div>
+</div>
+
+<!-- DIFFERENT ENDINGS -->
+<div class="section-divider">how to think about this</div>
+
+<h2>Pick how you want to end this chapter</h2>
+
+<div class="prose">
+  <p>Every reader has a different way of internalizing something new. Below are four different endings to this chapter — each one frames the same insight from a different angle. Pick whichever one clicks for you.</p>
+</div>
+
+<div class="endings-grid">
+  <div class="ending-card" id="end-clock" onclick="showEnding('clock')">
+    <div class="ending-label">Analogy</div>
+    <div class="ending-title">The clock metaphor</div>
+    <div class="ending-preview">For readers who think in physical intuitions</div>
+  </div>
+  <div class="ending-card" id="end-math" onclick="showEnding('math')">
+    <div class="ending-label">Mathematical</div>
+    <div class="ending-title">What survives the dot product</div>
+    <div class="ending-preview">For readers who want to see the algebra</div>
+  </div>
+  <div class="ending-card" id="end-story" onclick="showEnding('story')">
+    <div class="ending-label">Story</div>
+    <div class="ending-title">The post office problem</div>
+    <div class="ending-preview">For readers who think in narratives</div>
+  </div>
+  <div class="ending-card" id="end-lr" onclick="showEnding('lr')">
+    <div class="ending-label">In this book's language</div>
+    <div class="ending-title">Where does logistic regression fit?</div>
+    <div class="ending-preview">Connecting back to every previous chapter</div>
+  </div>
+</div>
+
+<!-- ENDING: CLOCK -->
+<div class="ending-content" id="ending-clock">
+  <div class="big-ending">
+    <h2>The clock metaphor</h2>
+  </div>
+  <div class="prose">
+    <p>Think of a clock. It has three hands: hour, minute, second. Each hand moves at a different speed. Together, their combined positions uniquely identify every moment in a 12-hour period.</p>
+    <p>Sinusoidal PE is exactly this. Dimension 0 is the second hand — it cycles fast, completing a full loop in a few positions. Dimension 2 is the hour hand — it barely moves across a typical sentence. Together they give every position a unique combination of angles.</p>
+    <p>RoPE takes the metaphor further: instead of reading the clock hands and writing the time on an envelope, it <em>rotates the letter itself</em> by the time. When two rotated letters meet to compare notes, the rotation cancels — and only the time <em>between</em> them is visible. Not when each was sent. Just the gap.</p>
+    <p>That is why RoPE generalizes better. A sinusoidal model that sees "position 5" during training must generalize to "position 500" at test time. A RoPE model only ever sees gaps — and a gap of 4 is the same whether it appears at positions (1,5) or (100,104).</p>
+  </div>
+  <div class="sim-panel">
+    <div class="sim-title"><span class="sim-dot"></span> clock analogy — 4 hands at different speeds</div>
+    <p class="note-sm">Drag the position. Watch how the fast hands (pair 0) complete many loops while the slow hands (pair 1) barely move. Every position = a unique combination of clock states.</p>
+    <div class="slider-wrap">
+      <span>position</span>
+      <input type="range" id="clock-pos" min="0" max="60" value="0" step="1" oninput="updateClocks()">
+      <span class="slider-val" id="clock-pos-v">0</span>
+    </div>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:0.75rem 0" id="clock-faces"></div>
+    <div class="mono-box" id="clock-readout"></div>
+  </div>
+</div>
+
+<!-- ENDING: MATH -->
+<div class="ending-content" id="ending-math">
+  <div class="big-ending">
+    <h2>What survives the dot product</h2>
+  </div>
+  <div class="prose">
+    <p>The cleanest way to understand all four methods is to ask: after the dot product, which information survives?</p>
+  </div>
+  <pre><span class="cm">── Sinusoidal PE ──────────────────────────────────────────</span>
+q = word_q + PE(m)     <span class="cm"># position m baked into query</span>
+k = word_k + PE(n)     <span class="cm"># position n baked into key</span>
+
+dot(q, k) = dot(word_q, word_k)
+          + dot(word_q, PE(n))   <span class="cm"># cross terms!</span>
+          + dot(PE(m), word_k)   <span class="cm"># cross terms!</span>
+          + dot(PE(m), PE(n))    <span class="cm"># both absolute positions</span>
+
+<span class="cm"># Result: messy mix of m, n, word meanings</span>
+
+<span class="cm">── RoPE ───────────────────────────────────────────────────</span>
+q_m = rotate(word_q, m × speed)
+k_n = rotate(word_k, n × speed)
+
+dot(q_m, k_n) = dot(word_q, word_k) × cos((n-m) × speed)
+
+<span class="cm"># Result: word meaning × f(n-m) — only the gap!</span>
+<span class="cm"># Absolute positions m and n are mathematically gone.</span></pre>
+  <div class="sim-panel">
+    <div class="sim-title"><span class="sim-dot"></span> dot product anatomy — sinusoidal vs RoPE</div>
+    <p class="note-sm">Fix a gap between query and key. Then slide both positions together, keeping the gap constant. RoPE score stays locked. Sinusoidal score drifts.</p>
+    <div class="slider-wrap">
+      <span>gap (n−m)</span>
+      <input type="range" id="math-gap" min="-5" max="5" value="3" step="1" oninput="updateMathDemo()">
+      <span class="slider-val" id="math-gap-v">3</span>
+    </div>
+    <div class="slider-wrap">
+      <span>shift both by</span>
+      <input type="range" id="math-shift" min="0" max="5" value="0" step="1" oninput="updateMathDemo()">
+      <span class="slider-val" id="math-shift-v">0</span>
+    </div>
+    <div class="two-col" style="margin-top:0.5rem">
+      <div>
+        <p class="note-sm" style="color:#185FA5;margin-bottom:4px">Sinusoidal score</p>
+        <div class="score-display" style="background:#E6F1FB;color:#0C447C" id="math-sin-score">—</div>
+        <p class="note-sm" style="text-align:center" id="math-sin-note"></p>
+      </div>
+      <div>
+        <p class="note-sm" style="color:#854F0B;margin-bottom:4px">RoPE score</p>
+        <div class="score-display" style="background:#FAEEDA;color:#633806" id="math-rope-score">—</div>
+        <p class="note-sm" style="text-align:center" id="math-rope-note"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ENDING: STORY -->
+<div class="ending-content" id="ending-story">
+  <div class="big-ending">
+    <h2>The post office problem</h2>
+  </div>
+  <div class="prose">
+    <p>Imagine a postal sorting room. Letters arrive on a conveyor belt. A sorter must decide which letters are "related" — perhaps they are part of the same correspondence. The sorter reads the content of each letter to judge relevance. This is the attention mechanism.</p>
+    <p>But here is the problem: if someone shuffles the letters before they arrive, the sorter has no way to tell what order they came in. "Cat ate mouse" and "Mouse ate cat" look like the same pile of letters.</p>
+    <p><strong>Sinusoidal PE</strong> is like stamping each letter with a timestamp before it enters the room. The sorter now sees the content <em>plus</em> the timestamp together. But the timestamp and the content get mixed together in a messy way when the sorter tries to judge relevance.</p>
+    <p><strong>Learned PE</strong> is like letting the postal service design its own stamp system from scratch by learning from millions of letters. Works well, but cannot stamp letters with dates the system has never seen.</p>
+    <p><strong>Relative PE</strong> does not stamp the letters at all. Instead, when the sorter picks up two letters to compare, an assistant whispers "these arrived 4 letters apart." The sorter incorporates this directly into their judgment.</p>
+    <p><strong>RoPE</strong> is the most elegant solution: rotate each letter by its arrival time before handing it to the sorter. When the sorter holds two letters to compare them, the rotations interact — and the only thing left visible is the angle between them. The arrival times themselves cancel out. The sorter sees only the gap, automatically, with no assistant required.</p>
+  </div>
+</div>
+
+<!-- ENDING: LR -->
+<div class="ending-content" id="ending-lr">
+  <div class="big-ending">
+    <h2>Where does logistic regression fit?</h2>
+  </div>
+  <div class="prose">
+    <p>Every chapter in this book has shown the same two moves. Let's make sure positional encoding fits the pattern too.</p>
+    <p>Positional encoding is not itself a logistic regression. It is a <em>preprocessing step</em> — it modifies the input before the logistic regression runs. But look at what happens after:</p>
+  </div>
+  <pre><span class="cm"># After positional encoding, attention still runs the same way:</span>
+
+<span class="cm"># Move 1 — Logistic regression learns importance weights</span>
+score(i, j) = <span class="fn">softmax</span>( <span class="fn">dot</span>(W_Q·x_i, W_K·x_j) / <span class="fn">sqrt</span>(d) )
+
+<span class="cm"># Move 2 — Weighted average combines information</span>
+output_i = <span class="fn">sum</span>( score(i, j) × W_V·x_j   for all j )
+
+<span class="cm"># The x_i now carry BOTH meaning AND position</span>
+<span class="cm"># So the logistic regression in move 1 naturally learns</span>
+<span class="cm"># position-aware importance weights — without any change to itself</span></pre>
+  <div class="prose">
+    <p>That is the beauty of the design. Positional encoding does not add a new type of operation. It simply enriches the input so that the same two logistic-regression moves automatically become position-aware. The architecture does not need to know about position — the <em>data</em> carries it.</p>
+  </div>
+  <div class="insight">
+    <span class="insight-label">The full pattern, chapter 8</span>
+    <p>Chapter 1: one logistic regression. Chapter 2: stacked. Chapter 3: with memory gates. Chapter 4: two networks. Chapter 5: three LRs — one per role. Chapter 6: all words in parallel. Chapter 7: same formula, every word to every word. Chapter 8: inject position into the input — the LR does the rest.</p>
+  </div>
+  <div class="refrain">
+    <p>Still just logistic regression.</p>
+    <p>Now it knows where it is.</p>
+    <div class="extra">Extra trick: positional encoding — the input does the work.</div>
+  </div>
+</div>
+
+</div><!-- end chapter-body -->
+</div><!-- end content -->
+
+<footer>
+  <h2>"Every word knows where it sits."</h2>
+  <p style="color:var(--muted);font-size:0.9rem;margin-top:0.5rem">From the series: Everything is Logistic Regression (And Some Extra)</p>
+  <div class="next-chapter" style="margin-top:2rem">Next: Chapter 09 — Add & Norm · The tricks that make deep transformers trainable</div>
+</footer>
+
+<script>
+const words = ['The','cat','sat','on','the','mat'];
+const isDark = false;
+
+const wordVecs = [
+  [0.2,-0.5,0.8,-0.1],[0.9,0.3,-0.6,0.4],[-0.3,0.7,0.2,0.8],
+  [0.1,-0.2,0.5,-0.7],[0.2,-0.5,0.8,-0.1],[-0.6,0.4,-0.3,0.9],
+];
+const learnedTable = [
+  [0.12,-0.45,0.78,-0.23],[0.67,0.31,-0.52,0.88],[-0.34,0.91,0.15,-0.61],
+  [0.44,-0.73,0.63,0.27],[-0.81,0.22,-0.48,0.75],[0.55,-0.18,0.94,-0.39],
+];
+
+function sinPE(pos,dim){
+  const i=Math.floor(dim/2);
+  const freq=Math.pow(10000,2*i/4);
+  return dim%2===0?Math.sin(pos/freq):Math.cos(pos/freq);
+}
+function getPE(pos){return [0,1,2,3].map(d=>sinPE(pos,d));}
+function dot(a,b){return a.reduce((s,v,i)=>s+v*b[i],0);}
+function addV(a,b){return a.map((v,i)=>v+b[i]);}
+
+function vcStyle(v){
+  if(v>0.3) return 'background:#E6F1FB;color:#0C447C;border-color:#B5D4F4';
+  if(v<-0.3) return 'background:#FAECE7;color:#712B13;border-color:#F5C4B3';
+  return 'background:#f5f0e8;color:#0f0e0a;border-color:rgba(0,0,0,0.1)';
+}
+function renderVec(id,vals){
+  document.getElementById(id).innerHTML=vals.map(v=>`<div class="vc" style="${vcStyle(v)}">${v.toFixed(2)}</div>`).join('');
+}
+function dimLabels(id){
+  document.getElementById(id).innerHTML=['dim 0','dim 1','dim 2','dim 3'].map(l=>`<div class="dim-lbl">${l}</div>`).join('');
+}
+
+/* ── BAG OF WORDS ── */
+let curSent='a';
+const sentA=['The','cat','ate','the','mouse'];
+const sentB=['The','mouse','ate','the','cat'];
+function setSentence(s){
+  curSent=s;
+  document.getElementById('sent-a-btn').classList.toggle('active-btn',s==='a');
+  document.getElementById('sent-b-btn').classList.toggle('active-btn',s==='b');
+  const w=s==='a'?sentA:sentB;
+  document.getElementById('bag-tokens').innerHTML=w.map((wd,i)=>
+    `<div class="tok"><div class="tok-word">${wd}</div><div class="tok-lbl">pos ${i}</div></div>`).join('');
+  const scoreAB=dot(wordVecs[1],wordVecs[4]);
+  document.getElementById('bag-output').textContent=
+    `attention score between "${w[1]}" and "${w[4]}":\ndot(${w[1]}_vector, ${w[4]}_vector) = ${scoreAB.toFixed(4)}\n\nSame score in both sentences — the model cannot distinguish them.`;
+  document.getElementById('bag-note').textContent=s==='a'?
+    'Sentence A: "The cat ate the mouse"':'Sentence B: "The mouse ate the cat" — swapped, but identical scores!';
+}
+setSentence('a');
+
+/* ── ADD DEMO ── */
+function updateAddDemo(){
+  const pos=parseInt(document.getElementById('pos-pick').value);
+  document.getElementById('pos-pick-v').textContent=pos;
+  document.getElementById('add-tokens').innerHTML=words.map((w,i)=>
+    `<div class="tok"><div class="tok-word ${i===pos?'active-tok':''}">${w}</div><div class="tok-lbl">pos ${i}</div></div>`).join('');
+  dimLabels('add-dim-lbls');
+  renderVec('add-wvec',wordVecs[pos]);
+  const pe=getPE(pos);
+  renderVec('add-pvec',pe);
+  renderVec('add-fvec',addV(wordVecs[pos],pe));
+}
+updateAddDemo();
+
+/* ── SINUSOIDAL ── */
+function updateSin(){
+  const pos=parseInt(document.getElementById('sin-pos').value);
+  document.getElementById('sin-pos-v').textContent=pos;
+  const pe=getPE(pos);
+  document.getElementById('sin-dim-lbls').innerHTML=['dim 0','dim 1','dim 2','dim 3'].map(l=>`<div class="dim-lbl">${l}</div>`).join('');
+  renderVec('sin-vec',pe);
+  const labels=['sin(pos/1)','cos(pos/1)','sin(pos/100)','cos(pos/100)'];
+  const clrs=['#185FA5','#185FA5','#854F0B','#854F0B'];
+  const bgClrs=['#E6F1FB','#E6F1FB','#FAEEDA','#FAEEDA'];
+  document.getElementById('sin-cards').innerHTML=pe.map((v,i)=>{
+    const pct=Math.round((v+1)/2*100);
+    return `<div style="background:${bgClrs[i]};border-radius:4px;padding:0.6rem 0.8rem">
+      <p style="font-size:10px;color:${clrs[i]};font-family:'JetBrains Mono',monospace;margin-bottom:6px">${labels[i]}</p>
+      <p style="font-size:20px;font-weight:500;color:${clrs[i]}">${v.toFixed(3)}</p>
+      <div style="height:3px;background:rgba(0,0,0,0.08);border-radius:2px;margin-top:6px"><div style="height:3px;background:${clrs[i]};border-radius:2px;width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+updateSin();
+
+/* ── LEARNED ── */
+function buildLearnedTable(){
+  let h='<tr><th>pos</th><th>dim 0</th><th>dim 1</th><th>dim 2</th><th>dim 3</th></tr>';
+  learnedTable.forEach((row,i)=>{
+    h+=`<tr id="lrn-r-${i}"><td style="font-weight:500">${i}</td>${row.map(v=>`<td style="color:var(--muted)">${v.toFixed(2)}</td>`).join('')}</tr>`;
+  });
+  document.getElementById('learned-table').innerHTML=h;
+}
+function updateLearned(){
+  const pos=parseInt(document.getElementById('lrn-pos').value);
+  document.getElementById('lrn-pos-v').textContent=pos;
+  document.getElementById('lrn-pname').textContent=pos;
+  document.querySelectorAll('[id^="lrn-r-"]').forEach(r=>r.style.background='');
+  const r=document.getElementById(`lrn-r-${pos}`);
+  if(r) r.style.background='#fdf3dc';
+  renderVec('lrn-vec',learnedTable[pos]);
+}
+buildLearnedTable();
+updateLearned();
+
+/* ── RELATIVE ── */
+let relQ=1;
+function buildRelMatrix(){
+  document.getElementById('rel-tokens').innerHTML=words.map((w,i)=>
+    `<div class="tok"><div class="tok-word ${i===relQ?'active-tok':''}" style="cursor:pointer" onclick="setRelQ(${i})">${w}</div><div class="tok-lbl">pos ${i}</div></div>`).join('');
+  let h='<tr><th>query↓ key→</th>'+words.map((w,j)=>`<th>${w}(${j})</th>`).join('')+'</tr>';
+  for(let i=0;i<words.length;i++){
+    h+=`<tr><th>${words[i]}(${i})</th>`;
+    for(let j=0;j<words.length;j++){
+      const d=j-i;
+      h+=`<td class="${i===relQ?'hilite':j===relQ?'diff':''}">${d>=0?'+':''}${d}</td>`;
+    }
+    h+='</tr>';
+  }
+  document.getElementById('rel-matrix').innerHTML=h;
+  document.getElementById('rel-formula').textContent=
+    `Query: "${words[relQ]}" (pos ${relQ})\n\nFor each key word:\n  score = dot(q, k) + Bias[distance]\n\nExample: "${words[relQ]}" → "${words[3]}" (pos 3)\n  distance = 3 − ${relQ} = ${3-relQ>=0?'+':''}${3-relQ}\n  score = dot(q_${words[relQ]}, k_${words[3]}) + Bias[${3-relQ>=0?'+':''}${3-relQ}]`;
+}
+function setRelQ(i){relQ=i;buildRelMatrix();}
+buildRelMatrix();
+
+/* ── ROPE ── */
+function updateRope(){
+  const m=parseInt(document.getElementById('rope-m').value);
+  const n=parseInt(document.getElementById('rope-n').value);
+  document.getElementById('rope-m-v').textContent=m;
+  document.getElementById('rope-n-v').textContent=n;
+  const speed=25;
+  const am=m*speed, an=n*speed, gap=n-m;
+  const baseScore=dot(wordVecs[Math.min(m,5)],wordVecs[Math.min(n,5)]);
+  const ropeScore=baseScore*Math.cos(gap*speed*Math.PI/180);
+
+  document.getElementById('rope-box').textContent=
+    `query pos m=${m}  → rotated by ${am}°\nkey   pos n=${n}  → rotated by ${an}°\n\ndot product = dot(q,k) × cos(${an}° − ${am}°)\n            = ${baseScore.toFixed(3)} × cos(${gap*speed}°)\n            = ${ropeScore.toFixed(4)}\n\ngap (n−m) = ${gap>=0?'+':''}${gap}  ← only this determines the score`;
+
+  const c=document.getElementById('rope-canvas');
+  const ctx=c.getContext('2d');
+  const W=c.offsetWidth*devicePixelRatio, H=160*devicePixelRatio;
+  c.width=W; c.height=H;
+  const cx=W/2, cy=H/2, r=Math.min(W,H)*0.35;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,0,0,0.06)';
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-r*1.1,cy); ctx.lineTo(cx+r*1.1,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy-r*1.1); ctx.lineTo(cx,cy+r*1.1); ctx.stroke();
+
+  const base=-Math.PI/2;
+  const drawArrow=(angle,color,label,thick)=>{
+    const ex=cx+Math.cos(base+angle*Math.PI/180)*r;
+    const ey=cy+Math.sin(base+angle*Math.PI/180)*r;
+    ctx.strokeStyle=color; ctx.lineWidth=thick||2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.stroke();
+    ctx.fillStyle=color;
+    ctx.beginPath(); ctx.arc(ex,ey,5,0,Math.PI*2); ctx.fill();
+    ctx.font=`${11*devicePixelRatio}px sans-serif`;
+    ctx.fillText(label,ex+8,ey+4);
+  };
+  drawArrow(0,'rgba(0,0,0,0.2)','original',1);
+  drawArrow(am,'#185FA5',`query (${am}°)`,2.5);
+  drawArrow(an,'#854F0B',`key (${an}°)`,2.5);
+
+  ctx.font=`${11*devicePixelRatio}px sans-serif`;
+  ctx.fillStyle='rgba(0,0,0,0.5)';
+  ctx.fillText(`gap = ${gap>=0?'+':''}${gap} → cos(${gap*speed}°) = ${Math.cos(gap*speed*Math.PI/180).toFixed(3)}`,cx-r,cy+r*1.15);
+}
+updateRope();
+
+/* ── ENDINGS ── */
+function showEnding(id){
+  document.querySelectorAll('.ending-content').forEach(e=>e.classList.remove('show'));
+  document.querySelectorAll('.ending-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('ending-'+id).classList.add('show');
+  document.getElementById('end-'+id).classList.add('selected');
+  if(id==='clock') updateClocks();
+  if(id==='math') updateMathDemo();
+}
+
+/* ── CLOCK ENDING ── */
+const clockSpeeds=[1,0.1];
+const clockColors=['#185FA5','#854F0B'];
+function buildClockFaces(){
+  document.getElementById('clock-faces').innerHTML=clockSpeeds.map((_,i)=>
+    `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <canvas id="cf-${i}" width="100" height="100" style="width:100px;height:100px"></canvas>
+      <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">pair ${i} (${clockSpeeds[i]}°/step)</span>
+      <span id="cf-ang-${i}" style="font-size:12px;font-weight:500;font-family:'JetBrains Mono',monospace;color:${clockColors[i]}">0.0°</span>
+    </div>`).join('');
+}
+function drawClockFace(id,angleDeg,color){
+  const c=document.getElementById(id);
+  const ctx=c.getContext('2d');
+  const W=100,H=100,cx=50,cy=50,r=38;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,0,0,0.08)';
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+  const base=-Math.PI/2;
+  const rad=base+angleDeg*Math.PI/180;
+  ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,cy-r); ctx.stroke();
+  ctx.strokeStyle=color; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(rad)*r,cy+Math.sin(rad)*r); ctx.stroke();
+  ctx.fillStyle=color;
+  ctx.beginPath(); ctx.arc(cx+Math.cos(rad)*r,cy+Math.sin(rad)*r,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='white'; ctx.strokeStyle=color; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill(); ctx.stroke();
+}
+function updateClocks(){
+  if(!document.getElementById('cf-0')) buildClockFaces();
+  const pos=parseInt(document.getElementById('clock-pos').value);
+  document.getElementById('clock-pos-v').textContent=pos;
+  clockSpeeds.forEach((s,i)=>{
+    const ang=(pos*s*360)%360;
+    drawClockFace(`cf-${i}`,ang,clockColors[i]);
+    document.getElementById(`cf-ang-${i}`).textContent=ang.toFixed(1)+'°';
+  });
+  document.getElementById('clock-readout').textContent=
+    `Position ${pos}:\n`+clockSpeeds.map((s,i)=>{
+      const ang=(pos*s*360)%360;
+      return `  Pair ${i}: ${pos} × ${s}°/step = ${ang.toFixed(1)}°`;
+    }).join('\n')+`\n\nEvery position = unique combination of clock angles.`;
+}
+
+/* ── MATH ENDING ── */
+function updateMathDemo(){
+  const gap=parseInt(document.getElementById('math-gap').value);
+  const shift=parseInt(document.getElementById('math-shift').value);
+  document.getElementById('math-gap-v').textContent=gap>=0?'+'+gap:gap;
+  document.getElementById('math-shift-v').textContent=shift;
+  const m=shift, n=shift+gap;
+  const qv=addV(wordVecs[Math.min(Math.max(m,0),5)],getPE(m));
+  const kv=addV(wordVecs[Math.min(Math.max(n,0),5)],getPE(Math.max(n,0)));
+  const sinS=dot(qv,kv);
+  const base=dot(wordVecs[1],wordVecs[2]);
+  const ropeS=base*Math.cos(gap*1.0);
+  document.getElementById('math-sin-score').textContent=sinS.toFixed(4);
+  document.getElementById('math-rope-score').textContent=ropeS.toFixed(4);
+  document.getElementById('math-sin-note').textContent=`m=${m}, n=${n>=0?n:'?'} — changes as you shift`;
+  document.getElementById('math-rope-note').textContent=`gap=${gap>=0?'+':''}${gap} — stays constant`;
+}
+updateMathDemo();
+
+/* ── SCROLL ANIMATION ── */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:0.05});
+document.querySelectorAll('.chapter-body').forEach(el=>obs.observe(el));
+
+window.addEventListener('resize',()=>{updateRope();});
+</script>
+</body>
+</html>
