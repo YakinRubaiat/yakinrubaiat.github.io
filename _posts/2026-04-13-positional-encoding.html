@@ -710,11 +710,14 @@ output_i = <span class="fn">sum</span>( score(i, j) × W_V·x_j   for all j )
 </div><!-- end chapter-body -->
 </div><!-- end content -->
 
-<footer>
-  <h2>"Every word knows where it sits."</h2>
-  <p style="color:var(--muted);font-size:0.9rem;margin-top:0.5rem">From the series: Everything is Logistic Regression (And Some Extra)</p>
-  <div class="next-chapter" style="margin-top:2rem">Next: Chapter 09 — Add & Norm · The tricks that make deep transformers trainable</div>
-</footer>
+<!-- CLOSING -->
+<div class="content">
+  <div style="text-align:center; padding: 3rem 0 2rem; border-top: 2px solid var(--paper-dark);">
+    <p style="font-family:'Playfair Display',serif; font-size:1.6rem; font-style:italic; color:var(--ink);">"Every word knows where it sits."</p>
+    <p style="margin-top:1rem; font-family:'Lora',serif; font-size:0.95rem; color:var(--muted);">From the series: Everything is Logistic Regression (And Some Extra)</p>
+    <p style="margin-top:1.5rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--muted); opacity:0.5;">Next: Chapter 09 — Add &amp; Norm · The tricks that make deep transformers trainable</p>
+  </div>
+</div>
 
 <script>
 const words = ['The','cat','sat','on','the','mat'];
@@ -971,7 +974,7 @@ updateMathDemo();
 /* ── SCROLL ANIMATION ── */
 const obs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
-},{threshold:0.05});
+},{threshold:0});
 document.querySelectorAll('.chapter-body').forEach(el=>obs.observe(el));
 
 window.addEventListener('resize',()=>{updateRope();});
