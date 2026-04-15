@@ -264,8 +264,9 @@ table.mat th { background: var(--paper-dark); font-weight: 500; color: var(--mut
 .diff { background: #edf7ed; color: #2a5a2a; }
 
 /* ANIMATIONS */
-.chapter-body { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
-.chapter-body.visible { opacity: 1; transform: none; }
+.chapter-body { transition: opacity 0.6s ease, transform 0.6s ease; }
+.chapter-body.animate { opacity: 0; transform: translateY(24px); }
+.chapter-body.animate.visible { opacity: 1; transform: none; }
 
 @media (max-width: 600px) {
   .two-col, .endings-grid { grid-template-columns: 1fr; }
@@ -285,7 +286,7 @@ table.mat th { background: var(--paper-dark); font-weight: 500; color: var(--mut
 
 <!-- BODY -->
 <div class="content">
-<div class="chapter-body" id="main-body">
+<div class="chapter-body visible" id="main-body">
 
 <!-- THE PROBLEM -->
 <div class="prose" style="margin-top:3rem">
@@ -950,10 +951,7 @@ function updateMathDemo(){
 updateMathDemo();
 
 /* ── SCROLL ANIMATION ── */
-const obs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
-},{threshold:0});
-document.querySelectorAll('.chapter-body').forEach(el=>obs.observe(el));
+document.querySelectorAll('.chapter-body').forEach(el=>el.classList.add('visible'));
 
 window.addEventListener('resize',()=>{updateRope();});
 </script>
