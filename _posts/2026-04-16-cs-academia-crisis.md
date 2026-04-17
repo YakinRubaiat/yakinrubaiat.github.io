@@ -13,11 +13,11 @@ related_posts: false
 
 ---
 
-There is a story that gets told a lot in machine learning circles. In 2017, a team of Google researchers published "Attention Is All You Need" — the paper that introduced the Transformer architecture and effectively seeded the modern era of large language models. The story is usually told as a triumph of industrial research: a clean, scalable idea, validated at scale, deployed in products used by billions.
+Something has quietly shifted in how computer science decides what counts as good research. It did not happen through a policy change or a formal announcement. It happened through the slow accumulation of a thousand review decisions, each one individually defensible, collectively amounting to a structural transformation of what the field rewards.
 
-What gets left out is that the foundational attention mechanism itself was introduced three years earlier, in 2014, in a paper by Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio — all academics. Their work on neural machine translation proposed a learned alignment mechanism between encoder hidden states and decoder outputs, solving the information bottleneck in sequence-to-sequence models. It was a theoretical contribution, built on careful intuition, validated on modest benchmarks, and published without a single TPU in sight.
+The shift is this: experimental scale has become the primary currency of credibility. A paper that introduces a novel mechanism but validates it on modest benchmarks is increasingly seen as incomplete. A paper that fine-tunes an existing approach on eight datasets with careful ablations is increasingly seen as thorough. The former used to be publishable anywhere. The latter used to be considered incremental. That inversion has happened gradually enough that many people inside the field have barely noticed.
 
-Google did not invent the attention mechanism. They scaled it. And increasingly, the ability to scale is becoming the price of admission for publishing at all.
+Academia, for most of its history, had one structural advantage over industry: it was designed to explore widely and prove carefully. Hypotheses get generated, formalised into theory, and verified through mathematical argument. This is slow work, but it produces knowledge that is robust across contexts — not just accurate on the benchmark that happened to be available. That pipeline is now under serious pressure, and it is not obvious the field understands what it is about to lose.
 
 ---
 
@@ -49,29 +49,31 @@ Libraries designed for large-scale experimentation also embed assumptions that d
 
 ---
 
-## The "Attention Is All You Need" problem
-
-Return to the Transformer story, because it is instructive in ways the hagiographic version elides.
-
-Bahdanau et al. (2014) published a paper that was, by the standards of the time, a strong empirical contribution. Their alignment mechanism improved BLEU scores meaningfully on machine translation tasks that were tractable on academic hardware. The theoretical claim — that a neural network could learn soft alignment between sequences without explicit alignment supervision — was validated convincingly.
-
-> **Historical note:** The Bahdanau attention paper was developed at Université de Montréal, co-authored with Yoshua Bengio — one of the most prominent and well-connected figures in the entire field, a Turing Award laureate with deep ties to both academia and industry. If any academic paper had the reputational weight to survive an increasingly scale-hungry review culture, it was this one. And yet by today's standards, its evaluation would still be considered modest. Now ask what happens to the same idea submitted by a group without a Bengio on the author list. The paper likely never gets the visibility it needs. The insight still exists — it just disappears into a borderline rejection.
-
-Three years after Bahdanau et al., the Google Brain and Google Research team took the core insight, extended it, eliminated recurrence entirely, and validated the result across large translation datasets using hardware no academic group could replicate. The Transformer paper has over 100,000 citations. The Bahdanau paper has over 30,000. Neither number captures who actually had the foundational idea — or how much the field depends on the kind of institution that can produce ideas like it without needing to immediately prove them at scale.
-
-The more uncomfortable version of this story: had Bahdanau et al. submitted their paper in 2024 without Bengio's name and institutional weight behind it, it is not obvious it would have been accepted at a top venue. A reviewer from an industrial lab might have noted that the evaluation was limited to two language pairs, that larger models trained longer might not show the same gains, that the ablations were insufficient. All technically true. All beside the point of the contribution.
-
----
-
 ## What is actually being lost
 
 The things academia is good at are not primarily experimental. They are structural. A university is designed to explore a wide problem space slowly, project observations into formal abstractions, and produce mathematical accounts of phenomena that are robust across contexts. The hypothesis-generation and theory-formation pipeline that academia runs is not a weaker version of what industry does. It is a different function entirely.
+
+Consider dropout — the technique of randomly disabling neurons during training to prevent co-adaptation. It was proposed by Hinton's group at the University of Toronto in 2012, a small academic lab working with the hardware of the time. The core idea was theoretical: a formal argument about why forcing a network to never rely on any single neuron should improve generalisation. The original paper validated it on relatively modest vision tasks. Industry later ran it everywhere and confirmed it worked at scale. Today it is one of the most widely used regularisation techniques in deep learning. The insight came from a group with almost no compute advantage. The validation at scale came later, separately, from people who had the infrastructure to do it.
+
+This pattern is not unique. Residual connections, layer normalisation, the basic architecture of recurrent networks — most of the foundational mechanisms that power modern systems were proposed by academic groups working at a fraction of the scale now considered standard for evaluation. They got published because the field, at that time, still knew how to evaluate a theoretical contribution on its own terms.
 
 Industry optimises for marketable improvements to measurable benchmarks. This is not a criticism — it is what industry is supposed to do. The problem is that peer review, under the current regime, treats the industrial standard as the universal standard. A paper that proves a theoretical property of an algorithm — without producing a new state-of-the-art result — is a harder sell than it used to be. A paper that identifies a failure mode rigorously, through analysis rather than experiment, faces an uphill battle at venues dominated by benchmark-maximisers.
 
 > *"Theory and experiment are not the same activity. Treating them as if they are — and then funding only one — is not a research culture. It is a research monoculture."*
 
 The cascading consequences are real. Graduate students learn to chase benchmark improvements rather than understand mechanisms, because that is what gets published and therefore what gets them jobs. Advisors in universities without industry connections are progressively unable to place their students at top venues, which affects grant success rates, which affects ability to recruit strong students, which compounds the disadvantage over years. A small number of universities with deep industry ties — Stanford, CMU, MIT, ETH Zürich — retain the ability to compete, partly because their researchers have access to compute through partnerships or joint appointments. Everyone else falls behind.
+
+---
+
+## The uncomfortable case of Bahdanau et al
+
+The Transformer architecture — the backbone of essentially all modern large language models — is often cited as a triumph of industrial research. In 2017, a team at Google published "Attention Is All You Need," showing that a purely attention-based architecture could outperform recurrent models on translation tasks, and validated this convincingly at scale.
+
+What rarely gets mentioned is that the attention mechanism itself came from a 2014 paper by Bahdanau, Cho, and Bengio at Université de Montréal — a theoretical contribution proposing that a network could learn soft alignment between input and output sequences without explicit supervision. It was validated on modest benchmarks available to an academic group. Google did not invent attention. They scaled it.
+
+> **A note worth sitting with:** The Bahdanau paper was co-authored by Yoshua Bengio — a Turing Award laureate, one of the most connected and respected figures in the entire field. If any academic paper had the institutional weight to survive an increasingly scale-hungry review culture, it was this one. And yet by today's standards, its evaluation would still be considered modest. Now ask what happens to the same idea submitted by a group without that name on the author list. The insight still exists — it just disappears into a borderline rejection.
+
+The Transformer paper has over 100,000 citations. The Bahdanau paper has over 30,000. Neither number captures who had the foundational idea first, or what the field owes to the kind of institution that can produce ideas like it — slowly, carefully, without needing to immediately prove them at scale.
 
 ---
 
@@ -91,10 +93,12 @@ The deeper fix is resource redistribution. National compute grants — the kind 
 
 If the current trajectory continues, the likely outcome is a computer science research community stratified into two tiers that barely communicate. The first tier, centred on a handful of elite universities and industrial labs, produces large-scale empirical work that dominates publication metrics and captures most of the prestige and funding. The second tier, comprising most of the world's university departments, retreats into either application work (smaller experiments, less competitive venues) or non-empirical theory that struggles for visibility.
 
-This is bad for the field in ways that are not immediately obvious. Theoretical insights tend to come from researchers with time to think slowly and explore unconventional framings — the population that academia is specifically structured to support. The history of the attention mechanism is a case in point. The next foundational idea may already exist in a paper that got a borderline rejection because it lacked an evaluation on eight benchmarks. Nobody will know for another decade.
+This is bad for the field in ways that are not immediately obvious. Theoretical insights tend to come from researchers with time to think slowly and explore unconventional framings — the population that academia is specifically structured to support. The dropout paper, the attention mechanism, the residual connection — these came from groups that were not optimising for benchmark records. They were asking what was actually happening inside these networks, and why.
 
-The irony is that the field needs both things. It needs Google to show that attention scales to a billion parameters and transforms natural language understanding. And it needs Montréal to notice, in the first place, that attention is the right mechanism to investigate. Designing a review process that can only recognise the first contribution while systematically disadvantaging the second is not rigour. It is a slow-motion failure to notice what research is actually for.
+The next foundational idea may already exist in a paper that got a borderline rejection because it lacked an evaluation on eight benchmarks. Nobody will know for another decade.
+
+The field needs both things. It needs Google to show that attention scales to a billion parameters and transforms natural language understanding. And it needs Montréal to notice, in the first place, that attention is the right mechanism to investigate. Designing a review process that can only recognise the first contribution while systematically disadvantaging the second is not rigour. It is a slow-motion failure to notice what research is actually for.
 
 ---
 
-*Note on sources and statistics: The compute cost estimates are approximations based on publicly available reporting on large model training runs. The figure on industry authorship at NeurIPS 2023 reflects trends documented in studies of AI publication demographics; exact numbers vary by methodology. The account of the Bahdanau et al. (2014) paper and the Vaswani et al. (2017) Transformer paper is based on the published record. All interpretations are the author's own.*
+*Note on sources and statistics: The compute cost estimates are approximations based on publicly available reporting on large model training runs. The figure on industry authorship at NeurIPS 2023 reflects trends documented in studies of AI publication demographics; exact numbers vary by methodology. The accounts of the Bahdanau et al. (2014), Hinton et al. (2012) dropout, and Vaswani et al. (2017) Transformer papers are based on the published record. All interpretations are the author's own.*
